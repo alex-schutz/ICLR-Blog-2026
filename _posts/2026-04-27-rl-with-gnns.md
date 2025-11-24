@@ -1,9 +1,7 @@
 ---
 layout: distill
 title: Reinforcement Learning using Graph Neural Networks
-description: Your blog post's abstract.
-  Please add your abstract or summary here and not in the main body of your text.
-  Do not include math/latex or hyperlinks.
+description: Graph Neural Networks (GNNs) have been widely used in various supervised learning domains, known for their size invariance and ability to model relational data. Fewer works have explored their potential in Reinforcement Learning (RL). In this blog post, we discuss how GNNs can be effectively integrated into Deep RL frameworks, unlocking new capabilities for agents to reason with dynamic action spaces and achieve high-quality zero-shot size generalisation.
 date: 2026-04-27
 future: true
 htmlwidgets: true
@@ -27,41 +25,87 @@ bibliography: 2026-04-27-rl-with-gnns.bib
 #     for hyperlinks within the post to work correctly.
 #   - please use this format rather than manually creating a markdown table of contents.
 toc:
-  - name: Equations
-  - name: Images and Figures
+  - name: Introduction
+  - name: Preliminaries
     subsections:
       - name: Interactive Figures
-  - name: Citations
-  - name: Footnotes
-  - name: Code Blocks
-  - name: Diagrams
-  - name: Tweets
-  - name: Layouts
-  - name: Other Typography?
+  - name: Traditional Deep Reinforcement Learning
+  - name: Reinforcement with Graph Neural Networks
+  - name: Design Considerations
+  - name: Implementation Example
+  - name: Conclusion
 
-# Below is an example of injecting additional post-specific styles.
-# This is used in the 'Layouts' section of this post.
-# If you use this post as a template, delete this _styles block.
-_styles: >
-  .fake-img {
-    background: #bbb;
-    border: 1px solid rgba(0, 0, 0, 0.1);
-    box-shadow: 0 0px 4px rgba(0, 0, 0, 0.1);
-    margin-bottom: 12px;
-  }
-  .fake-img p {
-    font-family: monospace;
-    color: white;
-    text-align: left;
-    margin: 12px 0;
-    text-align: center;
-    font-size: 16px;
-  }
+
 ---
 
-Note: please use the table of contents as defined in the front matter rather than the traditional markdown styling.
 
-## Equations
+## Introduction
+GNNs mostly used for supervised learning. Underutilised in RL. Advantages over traditional networks. Here are some examples of how to use it, and some avenues for exploration
+
+## Preliminaries
+
+RL is a method of solving a sequential decision-making problem in the form of a Markov Decision Process (MDP).
+An MDP is defined as a tuple $$\langle S, A, T, R, \gamma \rangle$$, where $$S$$ is the set of states, $$A$$ is the set of actions, $$T: S \times A \times S \rightarrow [0, 1]$$ is the transition function, $$R: S \times A \rightarrow \mathbb{R}$$ is the reward function, and $$\gamma \in [0, 1)$$ is the discount factor.
+
+- rl terminology: episodes, returns, policy, value function, observation, action space
+- value-based methods and policy methods. how to extract a policy from a value function.
+
+## Traditional Deep Reinforcement Learning
+
+Deep RL refers to the integration of deep learning techniques with RL algorithms.
+In particular, deep neural networks are used as function approximators for the value function or policy function. 
+Here's what a typical deep RL architecture might look like:
+
+```mermaid
+graph TD
+	A[Environment] --> B[Observation]
+	B --> C[Observation Encoder]
+	C --> D[Value Network / Policy Network]
+	D --> E[Action]
+	E --> A
+```
+
+The key neural components in this architecture are the observation encoder and the value/policy network.
+The observation encoder processes raw observations from the environment (e.g., images, sensor data) into a latent representation.
+The value/policy network then takes this latent representation as input and outputs either the estimated value of each action (in value-based methods) or the parameters of the action distribution (in policy-based methods).
+
+- List some examples of benchmark RL problems and their observation space and action space
+
+- Limitations of traditional deep RL methods:
+  - Fixed-size action spaces
+  - Poor generalisation to larger or smaller problem instances
+- Can achieve generalisation through tricks like padding or breaking up the space, partial observability
+  - Example and how it breaks
+
+## Reinforcement with Graph Neural Networks
+
+- Define a graph, what an MDP looks like on a graph
+- How GNNs can be used to process graph-structured observations
+- How GNNs can be used to model policies/value functions that can handle variable-size action spaces
+- Examples of use
+
+### Example 1: Combinatorial Optimisation on Graphs 
+
+### Example 2: Multi-Agent RL on Graphs
+
+### Example 3: 
+
+
+## Design Considerations
+- Design of action space (graph-level vs node-level actions, edge level harder but doable)
+  - What if actions don't map directly to nodes/edges?
+  - Design of the Action Space
+	- Can go from GNN output -> edge or node selection or graph action with MLP
+	- Unclear how to extend this though - what if nodes don't directly map to actions?
+		- Current GNNs require a lot of homophily
+		- Might need separate sub-architecture
+
+## Implementation Example
+
+## Conclusion
+
+
+---
 
 This theme supports rendering beautiful math in inline and display modes using [MathJax 3](https://www.mathjax.org/) engine.
 You just need to surround your math expression with `$$`, like `$$ E = mc^2 $$`.
@@ -80,103 +124,11 @@ that brought a significant improvement to the loading and rendering speed, which
 
 ## Images and Figures
 
-Its generally a better idea to avoid linking to images hosted elsewhere - links can break and you
-might face losing important information in your blog post.
-To include images in your submission in this way, you must do something like the following:
-
-```markdown
-{% raw %}{% include figure.liquid path="assets/img/2026-04-27-distill-example/iclr.png" class="img-fluid" %}{% endraw %}
-```
-
-which results in the following image:
 
 {% include figure.liquid path="assets/img/2026-04-27-distill-example/iclr.png" class="img-fluid" %}
 
-To ensure that there are no namespace conflicts, you must save your asset to your unique directory
-`/assets/img/2025-04-27-[SUBMISSION NAME]` within your submission.
-
-Please avoid using the direct markdown method of embedding images; they may not be properly resized.
-Some more complex ways to load images (note the different styles of the shapes/shadows):
-
-<div class="row mt-3">
-    <div class="col-sm mt-3 mt-md-0">
-        {% include figure.liquid path="assets/img/2026-04-27-distill-example/9.jpg" class="img-fluid rounded z-depth-1" %}
-    </div>
-    <div class="col-sm mt-3 mt-md-0">
-        {% include figure.liquid path="assets/img/2026-04-27-distill-example/7.jpg" class="img-fluid rounded z-depth-1" %}
-    </div>
-</div>
-<div class="caption">
-    A simple, elegant caption looks good between image rows, after each row, or doesn't have to be there at all.
-</div>
-
-<div class="row mt-3">
-    <div class="col-sm mt-3 mt-md-0">
-        {% include figure.liquid path="assets/img/2026-04-27-distill-example/8.jpg" class="img-fluid z-depth-2" %}
-    </div>
-    <div class="col-sm mt-3 mt-md-0">
-        {% include figure.liquid path="assets/img/2026-04-27-distill-example/10.jpg" class="img-fluid z-depth-2" %}
-    </div>
-</div>
-
-<div class="row mt-3">
-    <div class="col-sm mt-3 mt-md-0">
-        {% include figure.liquid path="assets/img/2026-04-27-distill-example/11.jpg" class="img-fluid"  %}
-    </div>
-    <div class="col-sm mt-3 mt-md-0">
-        {% include figure.liquid path="assets/img/2026-04-27-distill-example/12.jpg" class="img-fluid" %}
-    </div>
-    <div class="col-sm mt-3 mt-md-0">
-        {% include figure.liquid path="assets/img/2026-04-27-distill-example/7.jpg" class="img-fluid" %}
-    </div>
-</div>
-
 ### Interactive Figures
 
-Here's how you could embed interactive figures that have been exported as HTML files.
-Note that we will be using plotly for this demo, but anything built off of HTML should work
-(**no extra javascript is allowed!**).
-All that's required is for you to export your figure into HTML format, and make sure that the file
-exists in the `assets/html/[SUBMISSION NAME]/` directory in this repository's root directory.
-To embed it into any page, simply insert the following code anywhere into your page.
-
-```markdown
-{% raw %}{% include [FIGURE_NAME].html %}{% endraw %}
-```
-
-For example, the following code can be used to generate the figure underneath it.
-
-```python
-import pandas as pd
-import plotly.express as px
-
-df = pd.read_csv('https://raw.githubusercontent.com/plotly/datasets/master/earthquakes-23k.csv')
-
-fig = px.density_mapbox(
-    df, lat='Latitude', lon='Longitude', z='Magnitude', radius=10,
-    center=dict(lat=0, lon=180), zoom=0, mapbox_style="stamen-terrain")
-fig.show()
-
-fig.write_html('./assets/html/2026-04-27-distill-example/plotly_demo_1.html')
-```
-
-And then include it with the following:
-
-```html
-{% raw %}
-<div class="l-page">
-  <iframe
-    src="{{ 'assets/html/2026-04-27-distill-example/plotly_demo_1.html' | relative_url }}"
-    frameborder="0"
-    scrolling="no"
-    height="600px"
-    width="100%"
-  ></iframe>
-</div>
-{% endraw %}
-```
-
-Voila!
 
 <div class="l-page">
   <iframe src="{{ 'assets/html/2026-04-27-distill-example/plotly_demo_1.html' | relative_url }}" frameborder='0' scrolling='no' height="600px" width="100%"></iframe>
@@ -184,15 +136,8 @@ Voila!
 
 ## Citations
 
-Citations are then used in the article body with the `<d-cite>` tag.
-The key attribute is a reference to the id provided in the bibliography.
-The key attribute can take multiple ids, separated by commas.
-
 The citation is presented inline like this: <d-cite key="gregor2015draw"></d-cite> (a number that displays more information on hover).
 If you have an appendix, a bibliography is automatically created and populated in it.
-
-Distill chose a numerical inline citation style to improve readability of citation dense articles and because many of the benefits of longer citations are obviated by displaying more information on hover.
-However, we consider it good style to mention author last names if you discuss something at length and it fits into the flow well — the authors are human and it’s nice for them to have the community associate them with their work.
 
 ---
 
@@ -204,15 +149,6 @@ The number of the footnote will be automatically generated.<d-footnote>This will
 ---
 
 ## Code Blocks
-
-This theme implements a built-in Jekyll feature, the use of Rouge, for syntax highlighting.
-It supports more than 100 languages.
-This example is in C++.
-All you have to do is wrap your code in a liquid tag:
-
-{% raw  %}
-{% highlight c++ linenos %} <br/> code code code <br/> {% endhighlight %}
-{% endraw %}
 
 The keyword `linenos` triggers display of line numbers. You can try toggling it on or off yourself below:
 
@@ -241,108 +177,6 @@ string myString;
 
 ---
 
-## Diagrams
-
-This theme supports generating various diagrams from a text description using [mermaid.js](https://mermaid-js.github.io/mermaid/){:target="\_blank"} directly.
-Below, we generate examples of such diagrams using [mermaid](https://mermaid-js.github.io/mermaid/){:target="\_blank"} syntax.
-
-**Note:** To enable mermaid diagrams, you need to add the following to your post's front matter:
-
-```yaml
-mermaid:
-  enabled: true
-  zoomable: true # optional, for zoomable diagrams
-```
-
-The diagram below was generated by the following code:
-
-
-````
-```mermaid
-sequenceDiagram
-    participant John
-    participant Alice
-    Alice->>John: Hello John, how are you?
-    John-->>Alice: Great!
-```
-````
-
-```mermaid
-sequenceDiagram
-    participant John
-    participant Alice
-    Alice->>John: Hello John, how are you?
-    John-->>Alice: Great!
-```
-
----
-
-## Tweets
-
-An example of displaying a tweet:
-{% twitter https://twitter.com/rubygems/status/518821243320287232 %}
-
-An example of pulling from a timeline:
-{% twitter https://twitter.com/jekyllrb maxwidth=500 limit=3 %}
-
-For more details on using the plugin visit: [jekyll-twitter-plugin](https://github.com/rob-murray/jekyll-twitter-plugin)
-
----
-
-## Blockquotes
-
-<blockquote>
-    We do not grow absolutely, chronologically. We grow sometimes in one dimension, and not in another, unevenly. We grow partially. We are relative. We are mature in one realm, childish in another.
-    —Anais Nin
-</blockquote>
-
----
-
-## Layouts
-
-The main text column is referred to as the body.
-It is the assumed layout of any direct descendants of the `d-article` element.
-
-<div class="fake-img l-body">
-  <p>.l-body</p>
-</div>
-
-For images you want to display a little larger, try `.l-page`:
-
-<div class="fake-img l-page">
-  <p>.l-page</p>
-</div>
-
-All of these have an outset variant if you want to poke out from the body text a little bit.
-For instance:
-
-<div class="fake-img l-body-outset">
-  <p>.l-body-outset</p>
-</div>
-
-<div class="fake-img l-page-outset">
-  <p>.l-page-outset</p>
-</div>
-
-Occasionally you’ll want to use the full browser width.
-For this, use `.l-screen`.
-You can also inset the element a little from the edge of the browser by using the inset variant.
-
-<div class="fake-img l-screen">
-  <p>.l-screen</p>
-</div>
-<div class="fake-img l-screen-inset">
-  <p>.l-screen-inset</p>
-</div>
-
-The final layout is for marginalia, asides, and footnotes.
-It does not interrupt the normal flow of `.l-body`-sized text except on mobile screen sizes.
-
-<div class="fake-img l-gutter">
-  <p>.l-gutter</p>
-</div>
-
----
 
 ## Other Typography?
 
