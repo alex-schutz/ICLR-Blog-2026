@@ -33,8 +33,8 @@ toc:
     subsections:
       - name: Fixed Action Spaces
       - name: Neighbours as Actions
-	  - name: Nodes as Actions
-	  - name: Edges as Actions
+      - name: Nodes as Actions
+      - name: Edges as Actions
   - name: Design Considerations
   - name: Implementation Example
   - name: Conclusion
@@ -89,6 +89,7 @@ The value/policy network then takes this latent representation as input and outp
 - How GNNs can be used to process graph-structured observations
 
 ### Fixed Action Spaces
+
 - nodes to graph embedding via pooling
   - best to be permutation invariant
 - graph embedding to action space via MLP or similar
@@ -96,22 +97,26 @@ The value/policy network then takes this latent representation as input and outp
 
 
 ### Neighbours as Actions
+
 - GNN outputs node-level embeddings
 - use node embeddings to get scores (value-based)
 
 ### Nodes as Actions
+
 - GNN outputs node-level embeddings
 - use previous score based approach for value based approach
 - or use proto-action approach (policy-based)
 - examples
 
 ### Edges as Actions
+
 - GNN could output edge-level embeddings
 - Or could use line graph transformation to convert edges to nodes
 - examples
 
 
 ## Design Considerations
+
 - Design of action space (graph-level vs node-level actions, edge level harder but doable)
   - What if actions don't map directly to nodes/edges?
   - Design of the Action Space
