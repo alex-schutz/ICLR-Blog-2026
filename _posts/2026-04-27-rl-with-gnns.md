@@ -27,10 +27,14 @@ bibliography: 2026-04-27-rl-with-gnns.bib
 toc:
   - name: Introduction
   - name: Preliminaries
-    subsections:
-      - name: Interactive Figures
+  - name: Graph Neural Networks
   - name: Traditional Deep Reinforcement Learning
-  - name: Reinforcement with Graph Neural Networks
+  - name: Reinforcement Learning with Graph Neural Networks
+    subsections:
+      - name: Fixed Action Spaces
+      - name: Neighbours as Actions
+	  - name: Nodes as Actions
+	  - name: Edges as Actions
   - name: Design Considerations
   - name: Implementation Example
   - name: Conclusion
@@ -49,6 +53,8 @@ An MDP is defined as a tuple $$\langle S, A, T, R, \gamma \rangle$$, where $$S$$
 
 - rl terminology: episodes, returns, policy, value function, observation, action space
 - value-based methods and policy methods. how to extract a policy from a value function.
+
+## Graph Neural Networks
 
 ## Traditional Deep Reinforcement Learning
 
@@ -77,18 +83,32 @@ The value/policy network then takes this latent representation as input and outp
 - Can achieve generalisation through tricks like padding or breaking up the space, partial observability
   - Example and how it breaks
 
-## Reinforcement with Graph Neural Networks
+## Reinforcement Learning with Graph Neural Networks
 
 - Define a graph, what an MDP looks like on a graph
 - How GNNs can be used to process graph-structured observations
-- How GNNs can be used to model policies/value functions that can handle variable-size action spaces
-- Examples of use
 
-### Example 1: Combinatorial Optimisation on Graphs 
+### Fixed Action Spaces
+- nodes to graph embedding via pooling
+  - best to be permutation invariant
+- graph embedding to action space via MLP or similar
+- examples
 
-### Example 2: Multi-Agent RL on Graphs
 
-### Example 3: 
+### Neighbours as Actions
+- GNN outputs node-level embeddings
+- use node embeddings to get scores (value-based)
+
+### Nodes as Actions
+- GNN outputs node-level embeddings
+- use previous score based approach for value based approach
+- or use proto-action approach (policy-based)
+- examples
+
+### Edges as Actions
+- GNN could output edge-level embeddings
+- Or could use line graph transformation to convert edges to nodes
+- examples
 
 
 ## Design Considerations
