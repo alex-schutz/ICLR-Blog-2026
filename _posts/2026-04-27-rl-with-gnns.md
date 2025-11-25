@@ -30,12 +30,13 @@ toc:
   - name: Graph Neural Networks
   - name: Traditional Deep Reinforcement Learning
   - name: Reinforcement Learning with Graph Neural Networks
+  - name: Environments as Graphs
     subsections:
       - name: Fixed Action Spaces
       - name: Neighbours as Actions
       - name: Nodes as Actions
       - name: Edges as Actions
-  - name: Design Considerations
+  - name: Future Avenues
   - name: Implementation Example
   - name: Conclusion
 
@@ -45,16 +46,29 @@ toc:
 
 ## Introduction
 GNNs mostly used for supervised learning. Underutilised in RL. Advantages over traditional networks. Here are some examples of how to use it, and some avenues for exploration
+- hypothesise that lack of uptake is due to unclear design patterns for integrating GNNs into RL frameworks
+- Advantages
+  - permutation invariance
+  - ood size generalisation
+  - variable action space
 
 ## Preliminaries
 
 RL is a method of solving a sequential decision-making problem in the form of a Markov Decision Process (MDP).
 An MDP is defined as a tuple $$\langle S, A, T, R, \gamma \rangle$$, where $$S$$ is the set of states, $$A$$ is the set of actions, $$T: S \times A \times S \rightarrow [0, 1]$$ is the transition function, $$R: S \times A \rightarrow \mathbb{R}$$ is the reward function, and $$\gamma \in [0, 1)$$ is the discount factor.
 
-- rl terminology: episodes, returns, policy, value function, observation, action space
+- rl terminology: episodes, returns, policy, value function, environment, observation, action space
 - value-based methods and policy methods. how to extract a policy from a value function.
 
 ## Graph Neural Networks
+
+- brief overview of GNNs
+- examples in supervised learning etc
+- introduce graph notation and node/edge features
+
+Suppose we have a graph $$G = (V, E)$$, with nodes $V$ and edges $E$.
+The nodes describe some sort of item, and the edges describe some sort of relationship between them.
+
 
 ## Traditional Deep Reinforcement Learning
 
@@ -83,10 +97,44 @@ The value/policy network then takes this latent representation as input and outp
 - Can achieve generalisation through tricks like padding or breaking up the space, partial observability
   - Example and how it breaks
 
+### Permutation Sensitivity
+Graphs are permutation invariant. Only relationships matter, not ordering (can be added if desired). Adjacency matrix representation artificially imposes order that traditional networks implicitly make use of.
+
+Let's use the game of tic-tac-toe as an example. 
+This game is represented by a $$3\times 3$$ grid, in which spaces can be blank, or contain an $$\texttt{X}$$ or $$\texttt{O}$$.
+A simple representation of this state would be a $$3\times 3$$ matrix with each entry corresponding to the contents of the space on the board.
+This kind of state representation is easily handled by an appropriately sized CNN layer or MLP after vectorisation.
+An important property of the game tic-tac-toe is that the orientation of the board does not matter: we can consider game states to be the same if they are the same under rotation or reflection.
+However, without external intervention, **our network does not know this**.
+Without considering this kind of permutation invariance, there are **eight times** as many tic-tac-toe states that the model must learn to solve.
+In a simple environment like tic-tac-toe we can easily modify the state representation to collapse symmetries and avoid this issue.
+However, in general, permutation invariance is not always an easy property to engineer.
+This is where GNNs can be very useful, as permutation invariance is an intrinsic property of the network, inherently collapsing equivalent state representations for free.
+
 ## Reinforcement Learning with Graph Neural Networks
+
+Can we use a GNN as the main policy network in a deep RL process?
+The answer is, of course, yes.
+Since GNNs operate on graphs, the environment must output graph-like observations.
+
+This means defining:
+1. What is a node?
+2. What is an edge?
+3. What node features are present (if any)?
+4. What edge features are present (if any)?
+
+Going back to our tic-tac-toe example, we will define a *node* to be any of the nine possible positions on the board.
+We will define *edges* such that two nodes are connected by an edge if they are adjacent on the board.
+Finally, we will define a categorical *node feature* $$\in \{0, 1, 2\}$$, which tells us that the node contains a blank space, $$\texttt{X}$$, or $$\texttt{O}$$ respectively.
 
 - Define a graph, what an MDP looks like on a graph
 - How GNNs can be used to process graph-structured observations
+
+- Advantages examples
+  - tic tac toe : permutation invariant (don't have to process symmetries)
+  - open team size collaboration
+  
+## Environments as Graphs
 
 ### Fixed Action Spaces
 
@@ -108,6 +156,9 @@ The value/policy network then takes this latent representation as input and outp
 - or use proto-action approach (policy-based)
 - examples
 
+#### Proto-Action
+
+
 ### Edges as Actions
 
 - GNN could output edge-level embeddings
@@ -115,15 +166,10 @@ The value/policy network then takes this latent representation as input and outp
 - examples
 
 
-## Design Considerations
+## Future Avenues
 
-- Design of action space (graph-level vs node-level actions, edge level harder but doable)
-  - What if actions don't map directly to nodes/edges?
-  - Design of the Action Space
-	- Can go from GNN output -> edge or node selection or graph action with MLP
-	- Unclear how to extend this though - what if nodes don't directly map to actions?
-		- Current GNNs require a lot of homophily
-		- Might need separate sub-architecture
+- What if actions don't map directly to nodes/edges?
+- Current GNNs require a lot of homophily, complex interactions harder to model even if they could be modelled as a graph (e.g. different node/edge types)
 
 ## Implementation Example
 
