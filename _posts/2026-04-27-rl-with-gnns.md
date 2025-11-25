@@ -98,7 +98,14 @@ The value/policy network then takes this latent representation as input and outp
   - Example and how it breaks
 
 ### Permutation Sensitivity
-Graphs are permutation invariant. Only relationships matter, not ordering (can be added if desired). Adjacency matrix representation artificially imposes order that traditional networks implicitly make use of.
+Graphs nominally enjoy the property of permutation invariance: regardless of the ordering of the nodes, the properties are the same, as only the *relationships* between the nodes are important.
+When we write down a graph's representation using an adjacency matrix, we implicitly create an ordering of the nodes.
+
+> insert figure showing one graph that leads to two adjacency matrices
+
+If we use the matrix representation of the graph as input to a neural network, we lose the property of permutation invariance.
+The two adjacency matrices above are created from the same graph. Fed to an MLP, we get two very different outputs.
+This means that in order to train our network to, say, classify graphs based on their structure, we would have to add permutations of the training data in order to ensure that it learns to correctly classify what is fundamentally the same graph.
 
 Let's use the game of tic-tac-toe as an example. 
 This game is represented by a $$3\times 3$$ grid, in which spaces can be blank, or contain an $$\texttt{X}$$ or $$\texttt{O}$$.
