@@ -138,11 +138,6 @@ Can we use a GNN as the main policy network in a deep RL process?
 The answer is, of course, yes.
 Since GNNs operate on graphs, the environment must output graph-like observations.
 
-This means defining:
-1. What is a node?
-2. What is an edge?
-3. What node features are present (if any)?
-4. What edge features are present (if any)?
 
 Going back to our tic-tac-toe example, we will define a *node* to be any of the nine possible positions on the board.
 We will define *edges* such that two nodes are connected by an edge if they are adjacent on the board.
@@ -156,6 +151,22 @@ Finally, we will define a categorical *node feature* $$\in \{0, 1, 2\}$$, which 
   - open team size collaboration
   
 ## Environments as Graphs
+
+In order to use GNNs in RL, we need to represent the environment as a graph.
+This means defining:
+1. What is a node?
+2. What is an edge?
+3. What node and edge features are present?
+4. What is the action space, and how does it relate to the graph structure?
+
+Generally, nodes represent entities in the environment, while edges represent relationships or interactions between those entities.
+Nodes and edges can be equipped with features that describe their properties, such as weight, status, or type.
+
+Perhaps the most important and most difficult aspect of using GNNs in RL is defining the action space.
+In traditional RL, the action space is often fixed and discrete, or continuous within a certain range.
+However, when using GNNs, the action space can be more complex and dynamic, depending on the graph structure.
+In the following sections, we discuss several common approaches to defining action spaces in GNN-based RL environments.
+
 
 ### Fixed Action Spaces
 
@@ -181,7 +192,8 @@ Similarly, if using node embeddings directly, care must be taken in the selectio
 Many environments can be naturally represented as graphs where the possible actions correspond to the neighbours of a given node.
 For example, in the navigation task mentioned earlier, each room could be represented as a node, with edges connecting rooms that are directly accessible from one another.
 In this case, the action space is dynamic, and is represented by the neighbours of the current node.
-Using a GNN in this setting allows the agent to reason about the structure of the environment and select actions based on the relationships between nodes.
+The action space is not limited by a maximum size as in traditional RL settings, and can vary depending on the current node.
+This type of action space is particularly useful in decentralised multi-agent settings, where each agent only has local information about its neighbours.
 
 When using neighbours as actions, the typical approach is to use the GNN to produce node-level embeddings, which are then used to score the neighbours of the current node.
 From these scores, an action distribution can be created, or the highest scoring neighbour can be selected directly.
@@ -189,21 +201,22 @@ From these scores, an action distribution can be created, or the highest scoring
 > insert diagram of GNN producing node embeddings, scoring neighbours for action selection
 
 #### Examples
-1. Goeckner et. al. <d-cite key="goecknerGraphNeuralNetworkbased2024"></d-cite> pose a patrolling problem in which a team of agents must overcome partial observability, distrubed communications, and agent attrition. At each step, an agent chooses a node to move to from its current location $$v$$. To do this, the GNN-based embedding of each neighbour $$\{z_u | u \in \mathcal{N}(v)\}$$ is passed through a scoring MLP, $$\text{SCORE}: \mathbb{R}^d \rightarrow \mathbb{R}$$.
++ Goeckner et. al. <d-cite key="goecknerGraphNeuralNetworkbased2024"></d-cite> pose a patrolling problem in which a team of agents must overcome partial observability, distrubed communications, and agent attrition. At each step, an agent chooses a node to move to from its current location $$v$$. To do this, the GNN-based embedding of each neighbour $$\{z_u | u \in \mathcal{N}(v)\}$$ is passed through a scoring MLP, $$\text{SCORE}: \mathbb{R}^d \rightarrow \mathbb{R}$$.
 The scores of the neighbours are then passed to a selection MLP, which outputs the index of the action to take.
-1. Pisacane et. al. <d-cite key="pisacaneReinforcementLearningDiscovers2024"></d-cite> approach a decentralised graph path search problem using only local information. Each node in the graph represents an agent, and each node is assigned an attribute vector $$\mathbf{x}_{u_i} \in \mathbb{R}^d$$. Given a target node $$u_{\text{tgt}}$$, the agent at node $$u_i$$ must select one of its neighbours to forward a message $$\mathbf{m} \in \mathbb{R}^d$$ to, with the goal of reaching the target node in as few hops as possible. 
-To choose which neighbour should receive the message, a value estimate for each neighbour is generated using an MLP $$f$$, based on the embedding of the neighbour node and the embedding of the target node: $$v(u_i, u_{\text{tgt}}) = f_v([\mathbf{z}_{u_i} \| \mathbf{z}_{u_{\text{tgt}}}])$$. An action distribution is created by passing the value estimates through a softmax layer to get probabilities.
++ Pisacane et. al. <d-cite key="pisacaneReinforcementLearningDiscovers2024"></d-cite> approach a decentralised graph path search problem using only local information. Each node in the graph represents an agent, and each node is assigned an attribute vector $$\mathbf{x}_{u_i} \in \mathbb{R}^d$$. Given a target node $$u_{\text{tgt}}$$, the agent at node $$u_i$$ must select one of its neighbours to forward a message $$\mathbf{m} \in \mathbb{R}^d$$ to, with the goal of reaching the target node in as few hops as possible. To choose which neighbour should receive the message, a value estimate for each neighbour is generated using an MLP $$f$$, based on the embedding of the neighbour node and the embedding of the target node: $$v(u_i, u_{\text{tgt}}) = f_v([\mathbf{z}_{u_i} \| \mathbf{z}_{u_{\text{tgt}}}])$$. An action distribution is created by passing the value estimates through a softmax layer to get probabilities.
 
 
 ### Nodes as Actions
 
 More generally, we can consider the entire set of nodes in the graph as possible actions.
 This is particularly useful in environments where the agent can select any node in the graph as an action, such as in combinatorial optimisation problems.
+Using this action space, an agent can be trained on graphs of small sizes, and learn a policy that generalises to much larger graphs at test time.
 
 #### Score-Based
 Similarly to the neighbours-as-actions approach, the node embeddings produced by the GNN can be scored to produce action values or action probabilities.
+
 ##### Example
-1. In Darvariu et. al. <d-cite key="darvariuGoaldirectedGraphConstruction2021"></d-cite>, edges are to be added to a graph in order to maximise the robustness of the graph's connectivity against edge removals. The authors use Q-learning to derive a policy from action-value estimates for each node in the graph. The edge construction is posed as a two-step process: first selecting a source node, then a destination node. Given a proposed source node $$v$$, the Q-value in a graph state $$G$$ is given by $$Q(G, v) = f_1([\mathbf{z}_v \| \mathbf{z}_G])$$, where $$\mathbf{z}_G$$ is the graph-level embedding obtained via pooling and $$\mathbf{z}_v$$ is the node-level embedding of node $$v$$. After a source node is selected, a action-value estimates for the destination node $$u$$ are calculated using $$f_2([\mathbf{z}_v \| \mathbf{z}_u \| \mathbf{z}_G])$$. Here, $$f_1$$ and $$f_2$$ are 2-layer MLPs.
++ In Darvariu et. al. <d-cite key="darvariuGoaldirectedGraphConstruction2021"></d-cite>, edges are to be added to a graph in order to maximise the robustness of the graph's connectivity against edge removals. The authors use Q-learning to derive a policy from action-value estimates for each node in the graph. The edge construction is posed as a two-step process: first selecting a source node, then a destination node. Given a proposed source node $$v$$, the Q-value in a graph state $$G$$ is given by $$Q(G, v) = f_1([\mathbf{z}_v \| \mathbf{z}_G])$$, where $$\mathbf{z}_G$$ is the graph-level embedding obtained via pooling and $$\mathbf{z}_v$$ is the node-level embedding of node $$v$$. After a source node is selected, a action-value estimates for the destination node $$u$$ are calculated using $$f_2([\mathbf{z}_v \| \mathbf{z}_u \| \mathbf{z}_G])$$. Here, $$f_1$$ and $$f_2$$ are 2-layer MLPs.
 
 #### Proto-Action
 
@@ -222,16 +235,15 @@ graph TD
 ```
 
 ##### Examples
-1. Darvariu et. al. <d-cite key="darvariuSolvingGraphbasedPublic2021"></d-cite> approach a public goods game, reformulated as finding a maximal independent set in a graph. At each step, a node is selected from the graph to add to the set, until no valid nodes remain. The authors create a proto-action by first summing the node embeddings and then passing it through an MLP. An action distribution is created by taking the Euclidean distance between the proto-action and each node embedding, passing these distances through a softmax layer to get probabilities.
-2. Trivedi et. al. <d-cite key="trivediGraphOptLearningOptimization2020"></d-cite> seek to learn generative mechanisms for graph-structured data. Edges are formed by sampling two nodes from a Gaussian policy following $$\mathbf{a}^{(1)}, \mathbf{a}^{(2)} \sim \mathcal{N}(\mathbf{\mu}, \log(\mathbf{\sigma}^2))$$ given the policy $$\pi(s) = [\mathbf{\mu}, \log(\mathbf{\sigma}^2)] = g(Enc(s))$$, where $$g$$ is a 2 layer MLP and $$Enc$$ is a GNN.
++ Darvariu et. al. <d-cite key="darvariuSolvingGraphbasedPublic2021"></d-cite> approach a public goods game, reformulated as finding a maximal independent set in a graph. At each step, a node is selected from the graph to add to the set, until no valid nodes remain. The authors create a proto-action by first summing the node embeddings and then passing it through an MLP. An action distribution is created by taking the Euclidean distance between the proto-action and each node embedding, passing these distances through a softmax layer to get probabilities.
++ Trivedi et. al. <d-cite key="trivediGraphOptLearningOptimization2020"></d-cite> seek to learn generative mechanisms for graph-structured data. Edges are formed by sampling two nodes from a Gaussian policy following $$\mathbf{a}^{(1)}, \mathbf{a}^{(2)} \sim \mathcal{N}(\mathbf{\mu}, \log(\mathbf{\sigma}^2))$$ given the policy $$\pi(s) = [\mathbf{\mu}, \log(\mathbf{\sigma}^2)] = g(Enc(s))$$, where $$g$$ is a 2 layer MLP and $$Enc$$ is a GNN.
 
 <!-- TODO: \mathcal{N} redefinition conflict with neighbour notation -->
 
 ### Edges as Actions
 
-In some environments, actions may correspond to edges in the graph.
+In some types of problems, the actions naturally correpond to edges in the graph, rather than nodes.
 For example, in a network routing problem, an agent may need to select edges to route data packets through a network.
-In this case, the action space can be represented by the edges of the graph.
 
 As we saw in <d-cite key="darvariuGoaldirectedGraphConstruction2021"></d-cite> and <d-cite key="trivediGraphOptLearningOptimization2020"></d-cite>, one method of selecting edges is simply to decompose the edge selection into a pair of node selections.
 While this approach is strightforward and works with existing GNN architectures, it can be less efficient, effectively doubling the number of forward passes required to select an edge.
@@ -248,6 +260,7 @@ Some works have explored edge-centric GNN architectures which directly produce e
 ## Future Avenues
 
 - What if actions don't map directly to nodes/edges?
+  - e.g. actions are nodes and something extra like a noop
 - Current GNNs require a lot of homophily, complex interactions harder to model even if they could be modelled as a graph (e.g. different node/edge types)
 
 ## Implementation Example
@@ -283,11 +296,6 @@ that brought a significant improvement to the loading and rendering speed, which
 <div class="l-page">
   <iframe src="{{ 'assets/html/2026-04-27-distill-example/plotly_demo_1.html' | relative_url }}" frameborder='0' scrolling='no' height="600px" width="100%"></iframe>
 </div>
-
-## Citations
-
-The citation is presented inline like this: <d-cite key="gregor2015draw"></d-cite> (a number that displays more information on hover).
-If you have an appendix, a bibliography is automatically created and populated in it.
 
 ---
 
