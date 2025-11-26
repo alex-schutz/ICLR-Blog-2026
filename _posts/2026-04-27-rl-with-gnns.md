@@ -224,21 +224,28 @@ This means that it is possible to train a GNN-based policy on small graphs and d
 
 ## Reinforcement Learning with Graph Neural Networks
 
-Can we use a GNN as the main policy network in a deep RL process?
-The answer is, of course, yes.
-Since GNNs operate on graphs, the environment must output graph-like observations.
+Instead of using a traditional MLP or CNN as the policy or value network in a deep RL architecture, we can use a GNN.
+This allows us to leverage the advantages of GNNs, such as variable input and output dimensions, permutation invariance, and size generalisation.
 
+In order to use a GNN in an RL setting, we first need to represent the environment as a graph.
+In many cases, the environment can be naturally represented as a graph, with nodes representing entities in the environment and edges representing relationships or interactions between those entities.
+Going back to our tic-tac-toe example, we can define a node to be any of the nine possible positions on the board.
+We will define edges such that two nodes are connected by an edge if they are adjacent on the board.
+Finally, we will define a categorical node feature $$\in \{0, 1, 2\}$$, which tells us that the node contains a blank space, $$\texttt{X}$$, or $$\texttt{O}$$ respectively.
+With this graph representation of the environment, different rotations or symmetries of the board will lead to isomorphic graphs, which the GNN will inherently treat as the same.
 
-Going back to our tic-tac-toe example, we will define a *node* to be any of the nine possible positions on the board.
-We will define *edges* such that two nodes are connected by an edge if they are adjacent on the board.
-Finally, we will define a categorical *node feature* $$\in \{0, 1, 2\}$$, which tells us that the node contains a blank space, $$\texttt{X}$$, or $$\texttt{O}$$ respectively.
+> add figure showing tic tac toe as graph
 
-- Define a graph, what an MDP looks like on a graph
-- How GNNs can be used to process graph-structured observations
+Another example where GNNs can be useful is in multi-agent collaboration tasks.
+In multi-agent systems, agents often need to communicate and coordinate with each other to achieve a common goal.
+In many traditional multi-agent RL settings, it is common to assume a fixed number of agent interactions, in order to maintain a fixed observation and action space.
+A policy trained in this manner therefore becomes inapplicable when the number of agents changes.
+In the real world, the number of agents in a system can rarely be guaranteed, due to failures, additions, or dynamic participation.
+Instead, by representing the multi-agent system as a graph, where nodes represent agents and edges represent communication links between them, we can use GNNs to process the observations and actions of the agents.
+This allows us to train policies that can generalise to different numbers of agents at test time, as the GNN can handle graphs with variable size and connectivity.
 
-- Advantages examples
-  - tic tac toe : permutation invariant (don't have to process symmetries)
-  - open team size collaboration
+While GNNs offer several advantages in RL settings, it can be non-trivial to design the graph representation of the environment and define the action space and transition function of the MDP.
+In the following sections, we discuss common design approaches seen in the literature for applying GNNs in RL settings.
   
 ## Environments as Graphs
 <!-- todo: explicitly talk about the RL methods used in each example -->
@@ -369,8 +376,17 @@ At present, even if an environment can be modelled as a graph, complex structure
 Furthermore, many GNNs can be prone to over-smoothing, where node embeddings become indistinguishable after multiple message-passing layers.
 This makes long-range dependencies difficult to capture, and can limit the effectiveness of GNNs in environments with large or complex graphs.
 
+Presently, there is a lack of standardised support for graph-based environments and GNN-based policies in popular RL libraries and frameworks.
+While libraries such as PyTorch Geometric <d-cite key="fey2019fast"></d-cite> and Deep Graph Library <d-cite key="wang2019deep"></d-cite> provide implementations of various GNN architectures, integrating these with RL frameworks such as Stable Baselines3 <d-cite key="raffin2021stable"></d-cite> or RLlib <d-cite key="liang2018rllib"></d-cite> can be non-trivial.
+Improved support for graph-based RL in these libraries would facilitate further research and development in this area.
+In addition, standardised benchmarks and evaluation protocols for GNN-based RL methods would help to compare different approaches and identify best practices.
 
 ## Implementation Example
 
 ## Conclusion
+
+GNNs offer a powerful approach for modelling policies in RL settings, enabling capabilities such as permutation invariance, variable action spaces, and size generalisation.
+By representing the environment as a graph, we can leverage the strengths of GNNs to tackle complex RL problems that are difficult to solve with traditional deep learning architectures.
+While there are still challenges and open questions to be addressed, the integration of GNNs into RL holds great promise for advancing the field and unlocking new applications.
+Looking forward, we hope to see more research exploring the application of GNNs in policy networks, as well as improved support for graph-based RL in popular libraries and frameworks.
 
