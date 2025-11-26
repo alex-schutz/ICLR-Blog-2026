@@ -45,12 +45,19 @@ toc:
 
 
 ## Introduction
-GNNs mostly used for supervised learning. Underutilised in RL. Advantages over traditional networks. Here are some examples of how to use it, and some avenues for exploration
-- hypothesise that lack of uptake is due to unclear design patterns for integrating GNNs into RL frameworks, plus lack of implementation support in popular RL libraries.
-- Advantages
-  - permutation invariance
-  - ood size generalisation
-  - variable action space
+
+Graph Neural Networks (GNNs) have gained significant attention in recent years due to their ability to model relational data and capture complex interactions between entities.
+To date, most applications of GNNs have been in paradigms such as supervised and unsupervised learning, used for tasks such as node classification, link prediction, and graph classification.
+
+Deep reinforcement learning (RL) has also been an area of active research, with many successful applications in games, robotics, and control tasks.
+However, the potential of GNNs in RL remains relatively underexplored.
+Compared to traditional deep learning architectures such as convolutional neural networks (CNNs) and multi-layer perceptrons (MLPs), GNNs offer several advantages that enable novel capabilities in RL settings when used as a policy or value function approximator.
+These include out-of-distribution (OOD) size generalisation, permutation invariance, and the ability to handle variable action spaces.
+These properties have great value in applications such as multi-agent systems, navigation, combinatorial optimisation, and resource allocation.
+
+We hypothesise that the lack of uptake of GNNs in RL is due to unclear design patterns for integrating GNNs into RL frameworks, as well as a lack of implementation support in popular RL libraries.
+Thus, in this blog post, we aim to provide a comprehensive overview of GNNs in RL, focusing on the practical design aspects of using GNNs as policy or value function approximators.
+
 
 ## Preliminaries
 
@@ -132,6 +139,7 @@ This is where GNNs can be very useful, as permutation invariance is an intrinsic
 - Can achieve generalisation through tricks like padding or breaking up the space, partial observability
   - Example and how it breaks
 
+
 ## Reinforcement Learning with Graph Neural Networks
 
 Can we use a GNN as the main policy network in a deep RL process?
@@ -151,6 +159,7 @@ Finally, we will define a categorical *node feature* $$\in \{0, 1, 2\}$$, which 
   - open team size collaboration
   
 ## Environments as Graphs
+<!-- todo: explicitly talk about the RL methods used in each example -->
 
 In order to use GNNs in RL, we need to represent the environment as a graph.
 This means defining:
