@@ -27,7 +27,9 @@ bibliography: 2026-04-27-rl-with-gnns.bib
 toc:
   - name: Introduction
   - name: Preliminaries
-  - name: Graph Neural Networks
+    subsections:
+      - name: Reinforcement Learning
+      - name: Graph Neural Networks
   - name: Traditional Deep Reinforcement Learning
   - name: Reinforcement Learning with Graph Neural Networks
   - name: Environments as Graphs
@@ -46,6 +48,8 @@ toc:
 
 ## Introduction
 
+> add picture of GNN in RL setting
+
 Graph Neural Networks (GNNs) have gained significant attention in recent years due to their ability to model relational data and capture complex interactions between entities.
 To date, most applications of GNNs have been in paradigms such as supervised and unsupervised learning, used for tasks such as node classification, link prediction, and graph classification.
 
@@ -61,13 +65,14 @@ Thus, in this blog post, we aim to provide a comprehensive overview of GNNs in R
 
 ## Preliminaries
 
+### Reinforcement Learning
 RL is a method of solving a sequential decision-making problem in the form of a Markov Decision Process (MDP).
 An MDP is defined as a tuple $$\langle S, A, T, R, \gamma \rangle$$, where $$S$$ is the set of states, $$A$$ is the set of actions, $$T: S \times A \times S \rightarrow [0, 1]$$ is the transition function, $$R: S \times A \rightarrow \mathbb{R}$$ is the reward function, and $$\gamma \in [0, 1)$$ is the discount factor.
 
 - rl terminology: episodes, returns, policy, value function, environment, observation, action space
 - value-based methods and policy methods. how to extract a policy from a value function.
 
-## Graph Neural Networks
+### Graph Neural Networks
 
 - brief overview of GNNs
 - examples in supervised learning etc
@@ -160,6 +165,7 @@ Finally, we will define a categorical *node feature* $$\in \{0, 1, 2\}$$, which 
   
 ## Environments as Graphs
 <!-- todo: explicitly talk about the RL methods used in each example -->
+<!-- todo: highlight advantage of GNNs in each example -->
 
 In order to use GNNs in RL, we need to represent the environment as a graph.
 This means defining:
@@ -268,9 +274,20 @@ Some works have explored edge-centric GNN architectures which directly produce e
 
 ## Future Avenues
 
-- What if actions don't map directly to nodes/edges?
-  - e.g. actions are nodes and something extra like a noop
-- Current GNNs require a lot of homophily, complex interactions harder to model even if they could be modelled as a graph (e.g. different node/edge types)
+Using GNNs as policy or value function approximators in RL unlocks many new capabilities, but there are still a number of challenges and open questions that need to be addressed.
+
+As discussed previously, defining the action space is a key challenge when using GNNs in RL.
+Most existing works use either a fixed action space, or model actions as some function of nodes or edges.
+Popular GNN architectures are primarily designed to produce node-level embeddings, with edge-based actions not so far explored in RL settings.
+At this stage, modelling more complex action spaces, such as hybrids of fixed and graph-based actions, remains an open question.
+
+The limitations of GNN architectures themselves can also limit their effectiveness in RL settings.
+At present, many GNNs operate best under the assumption of homophily: that connected nodes are more likely to share similar features or labels.
+GNNs have also been designed for heterophilous graphs, but these require a strict bipartite structure, limiting their applicability.
+At present, even if an environment can be modelled as a graph, complex structures or interactions (such as distinct node types, or higher-order relationships) may create an environment that is not well-suited to existing GNN architectures.
+Furthermore, many GNNs can be prone to over-smoothing, where node embeddings become indistinguishable after multiple message-passing layers.
+This makes long-range dependencies difficult to capture, and can limit the effectiveness of GNNs in environments with large or complex graphs.
+
 
 ## Implementation Example
 
