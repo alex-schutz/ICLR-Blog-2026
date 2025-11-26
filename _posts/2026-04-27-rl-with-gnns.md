@@ -175,26 +175,40 @@ Similarly, if using node embeddings directly, care must be taken in the selectio
 #### Example
 + Li et. al. <d-cite key="liMessageAwareGraphAttention2021"></d-cite> approach a distributed multi-robot path planning problem where agents can communicate with adjacent robots, represented by a dynamic distance-based communication graph. At each step, an agent can take an action from {up, down, left, right, idle}. Each agent observes obstacles within their field of view, which is processed by a CNN to produce node features. These features are communicated with neighbouring agents according to the graph structure, executing the message passing of the GNN in a distributed manner. To obtain the action distribution, the aggregated node embeddings are passed to an MLP followed by a softmax layer: $$f : \mathbb{R}^d \rightarrow \mathbb{R}^{5}$$, where $$d$$ is the dimension of the node embeddings.
 
+
 ### Neighbours as Actions
 
-- GNN outputs node-level embeddings
-- use node embeddings to get scores (value-based)
+Many environments can be naturally represented as graphs where the possible actions correspond to the neighbours of a given node.
+For example, in the navigation task mentioned earlier, each room could be represented as a node, with edges connecting rooms that are directly accessible from one another.
+In this case, the action space is dynamic, and is represented by the neighbours of the current node.
+Using a GNN in this setting allows the agent to reason about the structure of the environment and select actions based on the relationships between nodes.
 
-1. <d-cite key="goecknerGraphNeuralNetworkbased2024"></d-cite> specify a node of interest, $$v$$, then pass the GNN-based embedding of each of its neighbours, $$\{z_u | u \in \mathcal{N}(v)\}$$, through a scoring MLP, $$\text{SCORE}: \mathbb{R}^d \rightarrow \mathbb{R}$$.
+When using neighbours as actions, the typical approach is to use the GNN to produce node-level embeddings, which are then used to score the neighbours of the current node.
+From these scores, an action distribution can be created, or the highest scoring neighbour can be selected directly.
+
+> insert diagram of GNN producing node embeddings, scoring neighbours for action selection
+
+#### Examples
+1. Goeckner et. al. <d-cite key="goecknerGraphNeuralNetworkbased2024"></d-cite> pose a patrolling problem in which a team of agents must overcome partial observability, distrubed communications, and agent attrition. At each step, an agent chooses a node to move to from its current location $$v$$. To do this, the GNN-based embedding of each neighbour $$\{z_u | u \in \mathcal{N}(v)\}$$ is passed through a scoring MLP, $$\text{SCORE}: \mathbb{R}^d \rightarrow \mathbb{R}$$.
 The scores of the neighbours are then passed to a selection MLP, which outputs the index of the action to take.
-1. <d-cite key="pisacaneReinforcementLearningDiscovers2024"></d-cite> generate value estimates for each neighbour using an MLP $$f$$ based on the embedding of the neighbour node and the embedding of a target node which is to be reached: $$v(u_i, u_{\text{tgt}}) = f_v([\mathbf{z}_{u_i} \| \mathbf{z}_{u_{\text{tgt}}}])$$. An action distribution is created by passing the value estimates through a softmax layer to get probabilities.
+1. Pisacane et. al. <d-cite key="pisacaneReinforcementLearningDiscovers2024"></d-cite> approach a decentralised graph path search problem using only local information. Each node in the graph represents an agent, and each node is assigned an attribute vector $$\mathbf{x}_{u_i} \in \mathbb{R}^d$$. Given a target node $$u_{\text{tgt}}$$, the agent at node $$u_i$$ must select one of its neighbours to forward a message $$\mathbf{m} \in \mathbb{R}^d$$ to, with the goal of reaching the target node in as few hops as possible. 
+To choose which neighbour should receive the message, a value estimate for each neighbour is generated using an MLP $$f$$, based on the embedding of the neighbour node and the embedding of the target node: $$v(u_i, u_{\text{tgt}}) = f_v([\mathbf{z}_{u_i} \| \mathbf{z}_{u_{\text{tgt}}}])$$. An action distribution is created by passing the value estimates through a softmax layer to get probabilities.
+
 
 ### Nodes as Actions
 
-- GNN outputs node-level embeddings
-- use previous score based approach for value based approach
+More generally, we can consider the entire set of nodes in the graph as possible actions.
+This is particularly useful in environments where the agent can select any node in the graph as an action, such as in combinatorial optimisation problems.
 
-1. <d-cite key="darvariuGoaldirectedGraphConstruction2021"></d-cite> use Q-learning to derive a policy from action-value estimates for each node in the graph. The problem is posed as a graph construction task, where new edges are added to the graph in two steps: first selecting a source node, then a destination node. Given a proposed source node $$v$$, the Q-value in a graph state $$G$$ is given by $$Q(G, v) = f_1([\mathbf{z}_v \| \mathbf{z}_G])$$, where $$\mathbf{z}_G$$ is the graph-level embedding obtained via pooling and $$\mathbf{z}_v$$ is the node-level embedding of node $$v$$. After a source node is selected, a action-value estimates for the destination node $$u$$ are calculated using $$f_2([\mathbf{z}_v \| \mathbf{z}_u \| \mathbf{z}_G])$$. Here, $$f_1$$ and $$f_2$$ are 2-layer MLPs.
+#### Score-Based
+Similarly to the neighbours-as-actions approach, the node embeddings produced by the GNN can be scored to produce action values or action probabilities.
+##### Example
+1. In Darvariu et. al. <d-cite key="darvariuGoaldirectedGraphConstruction2021"></d-cite>, edges are to be added to a graph in order to maximise the robustness of the graph's connectivity against edge removals. The authors use Q-learning to derive a policy from action-value estimates for each node in the graph. The edge construction is posed as a two-step process: first selecting a source node, then a destination node. Given a proposed source node $$v$$, the Q-value in a graph state $$G$$ is given by $$Q(G, v) = f_1([\mathbf{z}_v \| \mathbf{z}_G])$$, where $$\mathbf{z}_G$$ is the graph-level embedding obtained via pooling and $$\mathbf{z}_v$$ is the node-level embedding of node $$v$$. After a source node is selected, a action-value estimates for the destination node $$u$$ are calculated using $$f_2([\mathbf{z}_v \| \mathbf{z}_u \| \mathbf{z}_G])$$. Here, $$f_1$$ and $$f_2$$ are 2-layer MLPs.
 
 #### Proto-Action
 
-One method of selecting a node is to use a sort of "proto-action": the network outputs a vector which represents the best action for the state.
-Once we know what the embedding of the desired action looks like, we can choose which action to take based on what's available.
+Another method of selecting a node is to use a "proto-action": the network outputs a vector which represents the best action given the state.
+Once we know what the embedding of the desired action looks like, we can choose which action to take based on those available.
 The proto-action gets compared to the node embeddings of the other available actions using a scoring function, from which we can then produce a probability distribution or choose an action directly.
 The inspiration for this approach comes from <d-cite key="dulac-arnoldDeepReinforcementLearning2016"></d-cite>, where the authors use a similar method to select actions in a continuous action space.
 
@@ -207,9 +221,9 @@ graph TD
 	C --> D[Action Selection]
 ```
 
-#### Examples
-1. Darvariu et. al. create a proto-action by first summing the node embeddings and then passing it through an MLP <d-cite key="darvariuSolvingGraphbasedPublic2021"></d-cite>. An action distribution is created by taking the Euclidean distance between the proto-action and each node embedding, passing these distances through a softmax layer to get probabilities.
-2. Trivedi et. al. sample actions from a Gaussian policy following $$\mathbf{a} \sim \mathcal{N}(\mathbf{\mu}, \log(\mathbf{\sigma}^2))$$ given the policy $$\pi(s) = [\mathbf{\mu}, \log(\mathbf{\sigma}^2)] = g(Enc(s))$$, where $$g$$ is a 2 layer MLP and $$Enc$$ is a GNN <d-cite key="trivediGraphOptLearningOptimization2020"></d-cite>.
+##### Examples
+1. Darvariu et. al. <d-cite key="darvariuSolvingGraphbasedPublic2021"></d-cite> approach a public goods game, reformulated as finding a maximal independent set in a graph. At each step, a node is selected from the graph to add to the set, until no valid nodes remain. The authors create a proto-action by first summing the node embeddings and then passing it through an MLP. An action distribution is created by taking the Euclidean distance between the proto-action and each node embedding, passing these distances through a softmax layer to get probabilities.
+2. Trivedi et. al. <d-cite key="trivediGraphOptLearningOptimization2020"></d-cite> seek to learn generative mechanisms for graph-structured data. Actions are sampled from a Gaussian policy following $$\mathbf{a} \sim \mathcal{N}(\mathbf{\mu}, \log(\mathbf{\sigma}^2))$$ given the policy $$\pi(s) = [\mathbf{\mu}, \log(\mathbf{\sigma}^2)] = g(Enc(s))$$, where $$g$$ is a 2 layer MLP and $$Enc$$ is a GNN.
 
 <!-- TODO: \mathcal{N} redefinition conflict with neighbour notation -->
 
