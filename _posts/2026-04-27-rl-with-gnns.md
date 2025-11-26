@@ -46,7 +46,7 @@ toc:
 
 ## Introduction
 GNNs mostly used for supervised learning. Underutilised in RL. Advantages over traditional networks. Here are some examples of how to use it, and some avenues for exploration
-- hypothesise that lack of uptake is due to unclear design patterns for integrating GNNs into RL frameworks
+- hypothesise that lack of uptake is due to unclear design patterns for integrating GNNs into RL frameworks, plus lack of implementation support in popular RL libraries.
 - Advantages
   - permutation invariance
   - ood size generalisation
@@ -223,15 +223,26 @@ graph TD
 
 ##### Examples
 1. Darvariu et. al. <d-cite key="darvariuSolvingGraphbasedPublic2021"></d-cite> approach a public goods game, reformulated as finding a maximal independent set in a graph. At each step, a node is selected from the graph to add to the set, until no valid nodes remain. The authors create a proto-action by first summing the node embeddings and then passing it through an MLP. An action distribution is created by taking the Euclidean distance between the proto-action and each node embedding, passing these distances through a softmax layer to get probabilities.
-2. Trivedi et. al. <d-cite key="trivediGraphOptLearningOptimization2020"></d-cite> seek to learn generative mechanisms for graph-structured data. Actions are sampled from a Gaussian policy following $$\mathbf{a} \sim \mathcal{N}(\mathbf{\mu}, \log(\mathbf{\sigma}^2))$$ given the policy $$\pi(s) = [\mathbf{\mu}, \log(\mathbf{\sigma}^2)] = g(Enc(s))$$, where $$g$$ is a 2 layer MLP and $$Enc$$ is a GNN.
+2. Trivedi et. al. <d-cite key="trivediGraphOptLearningOptimization2020"></d-cite> seek to learn generative mechanisms for graph-structured data. Edges are formed by sampling two nodes from a Gaussian policy following $$\mathbf{a}^{(1)}, \mathbf{a}^{(2)} \sim \mathcal{N}(\mathbf{\mu}, \log(\mathbf{\sigma}^2))$$ given the policy $$\pi(s) = [\mathbf{\mu}, \log(\mathbf{\sigma}^2)] = g(Enc(s))$$, where $$g$$ is a 2 layer MLP and $$Enc$$ is a GNN.
 
 <!-- TODO: \mathcal{N} redefinition conflict with neighbour notation -->
 
 ### Edges as Actions
 
-- GNN could output edge-level embeddings
-- Or could use line graph transformation to convert edges to nodes
-- examples
+In some environments, actions may correspond to edges in the graph.
+For example, in a network routing problem, an agent may need to select edges to route data packets through a network.
+In this case, the action space can be represented by the edges of the graph.
+
+As we saw in <d-cite key="darvariuGoaldirectedGraphConstruction2021"></d-cite> and <d-cite key="trivediGraphOptLearningOptimization2020"></d-cite>, one method of selecting edges is simply to decompose the edge selection into a pair of node selections.
+While this approach is strightforward and works with existing GNN architectures, it can be less efficient, effectively doubling the number of forward passes required to select an edge.
+
+Given an edge embedding, edges could be selected in a similar manner to nodes, either through scoring or proto-action methods.
+However, most GNN architectures do not produce edge-level embeddings directly, instead prioritising node-level embeddings.
+There are two main ways to obtain edge embeddings from a GNN:
+1. Use the node embeddings to create edge embeddings by concatenating or summing the embeddings of the two nodes that form the edge. This is straightforward, but may not capture all the information about the edge itself, especially if the edge has attributes.
+2. Use a line graph transformation to convert edges into nodes, allowing the GNN to produce edge-level embeddings directly. This approach has been used in works where edge attributes are more important than nodes, such as <d-cite key="jiangCensNetConvolutionEdgeNode2019"></d-cite> and <d-cite key="caiLineGraphNeural2022"></d-cite>. However, the line graph transformation generally increases the size of the graph, and can lead to some duplication of information.
+
+Some works have explored edge-centric GNN architectures which directly produce edge embeddings, such as <d-cite key="zhaoLearningPrecodingPolicy2022a"></d-cite>, <d-cite key="yuLearningCountIsomorphisms2023"></d-cite> and <d-cite key="pengLearningResourceAllocation2024"></d-cite>, but to the best of our knowledge, this approach has not yet been applied in RL settings.
 
 
 ## Future Avenues
