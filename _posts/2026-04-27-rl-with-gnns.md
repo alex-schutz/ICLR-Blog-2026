@@ -31,6 +31,10 @@ toc:
       - name: Reinforcement Learning
       - name: Graph Neural Networks
   - name: Traditional Deep Reinforcement Learning
+    subsections:
+      - name: Permutation Sensitivity
+      - name: Fixed Output Dimensions
+      - name: Bounded Size Generalisation
   - name: Reinforcement Learning with Graph Neural Networks
   - name: Environments as Graphs
     subsections:
@@ -191,9 +195,9 @@ However, in general, permutation invariance is not always an easy property to en
 This is where GNNs can be very useful, as permutation invariance is an intrinsic property of the network, inherently collapsing equivalent state representations for free.
 
 
-### Action Spaces
+### Fixed Output Dimensions
 
-In traditional deep RL settings, the action space is typically fixed and discrete, or continuous within a certain range.
+In traditional deep RL settings, the shape of the action space is fixed, given by the architecture of the policy or value network.
 This means that the number of possible actions an agent can take is predetermined and does not change during learning or deployment.
 This can be limiting in environments where the action space is dynamic or variable, such as in navigation tasks or multi-agent systems.
 In such cases, existing approaches often resort to padding the action space to a fixed size or using hierarchical action representations, which can lead to inefficiencies and suboptimal policies.
@@ -208,7 +212,7 @@ This limitation has led to the popularity of grid-world environments, where the 
 Instead, by using GNNs, we can model the environment as a graph, where nodes represent rooms and edges represent doors.
 Using the neighbours of the current node as possible actions allows for a dynamic action space which can adapt to the environment's structure.
 
-### Size Generalisation
+### Bounded Size Generalisation
 
 Another limitation of traditional deep RL architectures is their inapplicability in environments of different sizes to the fixed input and output dimensions of the networks.
 Suppose we train an MLP policy on the adjacency matrix of a graph with $$N$$ nodes.
