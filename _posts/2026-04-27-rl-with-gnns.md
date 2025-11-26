@@ -157,6 +157,10 @@ The key neural components in this architecture are the observation encoder and t
 The observation encoder processes raw observations from the environment (e.g., images, sensor data) into a latent representation.
 The value/policy network then takes this latent representation as input and outputs either the estimated value of each action (in value-based methods) or the parameters of the action distribution (in policy-based methods).
 
+Typical deep learning architectures use CNNs for processing image-based observations, and MLPs for vector-based observations.
+Policy and value networks are often implemented as MLPs, which take the encoded observation as input and output action values or action probabilities.
+Notably, these MLP-based architectures require a fixed input dimension $$d$$, according to the size of the observation space or the output of the encoder, and a fixed output dimension according to the size of the action space $$|A|$$.
+
 <!-- Let's have a look at some popular deep RL benchmark problems.
 - **Lunar Lander**: 
   - Observation space: 8-dimensional vector -- lander coordinates, velocities, and contacts.
@@ -189,16 +193,29 @@ This is where GNNs can be very useful, as permutation invariance is an intrinsic
 
 ### Action Spaces
 
-- imagine navigating in a map, there are up to n doors in each room so you make that the action space (pad it for rooms with less doors)
-  - on a new map if there are n+1 doors the policy does not work, matrix is the wrong shape, have to retrain the policy entirely
-  - this has led to popularity of grid worlds where actions have a fixed shape
-  - we could instead use the neighbours as possible actions (GNN)
+In traditional deep RL settings, the action space is typically fixed and discrete, or continuous within a certain range.
+This means that the number of possible actions an agent can take is predetermined and does not change during learning or deployment.
+This can be limiting in environments where the action space is dynamic or variable, such as in navigation tasks or multi-agent systems.
+In such cases, existing approaches often resort to padding the action space to a fixed size or using hierarchical action representations, which can lead to inefficiencies and suboptimal policies.
+
+> add figure showing fixed action space vs variable action space
+
+For example, suppose an agent is navigating through a building with rooms connected by doors.
+If we define the action space to be the set of doors in the current room, the number of possible actions can vary depending on the room.
+In a traditional RL setting, we would need to pad the action space to a fixed size, which can lead to wasted capacity and difficulty in learning.
+If, at test time, the agent encounters a room with more doors than seen during training, the policy may not be able to handle the additional actions.
+This limitation has led to the popularity of grid-world environments, where the action space is fixed (e.g., up, down, left, right), but this comes at the cost of realism and flexibility.
+Instead, by using GNNs, we can model the environment as a graph, where nodes represent rooms and edges represent doors.
+Using the neighbours of the current node as possible actions allows for a dynamic action space which can adapt to the environment's structure.
 
 ### Size Generalisation
-- traditional network on adjacency matrix means imposing max size, what if one more node gets added? broken
-- in a graph structure the number of nodes is fully flexible
-- Can achieve generalisation through tricks like padding or breaking up the space, partial observability
-  - Example and how it breaks
+
+Another limitation of traditional deep RL architectures is their inapplicability in environments of different sizes to the fixed input and output dimensions of the networks.
+Suppose we train an MLP policy on the adjacency matrix of a graph with $$N$$ nodes.
+If we then test the policy on a graph with $$M > N$$ nodes, the input and output dimensions of the MLP will not match, and the policy will be unable to process the new graph.
+In a true graph structure, the number of nodes can vary, and we may not have any guarantees about the structure of the graph that would allow us to engineer a fixed-size representation.
+GNNs, on the other hand, are inherently size-invariant due to their message-passing architecture.
+This means that it is possible to train a GNN-based policy on small graphs and deploy it on much larger graphs without any modification to the network architecture, allowing zero-shot generalisation.
 
 
 ## Reinforcement Learning with Graph Neural Networks
