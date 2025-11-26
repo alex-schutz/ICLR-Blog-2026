@@ -48,7 +48,7 @@ toc:
 
 ## Introduction
 
-> add picture of GNN in RL setting
+> add picture of GNN in RL setting. use different action spaces as examples. two graphs going into GNN, different action space outputs.
 
 Graph Neural Networks (GNNs) have gained significant attention in recent years due to their ability to model relational data and capture complex interactions between entities.
 To date, most applications of GNNs have been in paradigms such as supervised and unsupervised learning, used for tasks such as node classification, link prediction, and graph classification.
@@ -69,17 +69,73 @@ Thus, in this blog post, we aim to provide a comprehensive overview of GNNs in R
 RL is a method of solving a sequential decision-making problem in the form of a Markov Decision Process (MDP).
 An MDP is defined as a tuple $$\langle S, A, T, R, \gamma \rangle$$, where $$S$$ is the set of states, $$A$$ is the set of actions, $$T: S \times A \times S \rightarrow [0, 1]$$ is the transition function, $$R: S \times A \rightarrow \mathbb{R}$$ is the reward function, and $$\gamma \in [0, 1)$$ is the discount factor.
 
-- rl terminology: episodes, returns, policy, value function, environment, observation, action space
-- value-based methods and policy methods. how to extract a policy from a value function.
+In reinforcement learning, an agent interacts with an _environment_ over a series of time steps.
+At each time step $$t$$, the environment produces an _observation_ corresponding to the current state $$s_t \in S$$, and the agent selects an _action_ $$a_t \in A$$ based on its _policy_ $$\pi(a_t | s_t)$$.
+The environment then transitions to a new state $$s_{t+1}$$ according to the transition function $$T$$, and the agent receives a _reward_ $$r_t = R(s_t, a_t)$$.
+The agent's objective is to learn a policy that maximises the expected cumulative reward, also known as the _return_: $$\mathbb{E}_{\pi}\left[\sum_{t=0}^{\infty} \gamma^t R(s_t, a_t)\right]$$.
+
+RL methods fall into two main categories: value-based methods and policy-based methods.
+Value-based methods, such as Q-learning and Deep Q-Networks (DQN), focus on estimating the Q-function $$Q : S \times A \rightarrow \mathbb{R}$$, representing the expected return for taking a particular action in a given state.
+Given the Q-function, a policy can be derived by selecting the action that maximises the value.
+Policy-based methods, such as Policy Gradient and Proximal Policy Optimization (PPO), directly parameterise the policy $$\pi_{\theta}(a | s)$$ and optimise the parameters $$\theta$$ to maximise the expected return.
+Both approaches can be implemented using deep neural networks as function approximators, in our case, GNNs.
 
 ### Graph Neural Networks
 
-- brief overview of GNNs
-- examples in supervised learning etc
-- introduce graph notation and node/edge features
+Graphs (also confusingly called networks) are a widely used mathematical representation of connected systems.
+A graph $$G = (V, E)$$ consists of a set of nodes $$V$$ and a set of edges $$E \subseteq V \times V$$.
+Nodes represent entities, while edges represent connections between them.
+For example, in a social network graph, nodes could represent individuals, and edges could represent friendships between them.
+In a graph, nodes and edges can have associated feature vectors $$\mathbf{x}_{v_i}$$ and $$\mathbf{x}_{e_{i,j}}$$.
+A graph can be represented using an adjacency matrix $$A \in \{0, 1\}^{|V| \times |V|}$$, where $$A_{i,j} = 1$$ if there is an edge from node $$v_i$$ to node $$v_j$$, and $$0$$ otherwise.
 
-Suppose we have a graph $$G = (V, E)$$, with nodes $V$ and edges $E$.
-The nodes describe some sort of item, and the edges describe some sort of relationship between them.
+An embedding of a graph is a mapping from the graph structure and its features to a low-dimensional vector space.
+Using the embedding, we can perform various downstream tasks such as node classification, link prediction, and graph classification.
+Shallow graph embedding methods are manually-designed approaches using local node statistics, characteristic matrices, graph kernels.
+However, these methods often fail to capture complex relationships in the graph.
+Deep graph embedding methods aim to learn the representation by training end-to-end with task-specific supervision signals.
+Graph Neural Networks (GNNs) are a class of deep learning models designed to operate on graph-structured data.
+
+> add figure showing node embedding of karate graph like in slides
+
+GNNs rely on the neighbourhood aggregation principle: the features of a node are learned by aggregating the features of its neighbours using a learnable parameterisation and an activation function.
+Typically, GNNs are parameter sharing architectures, where the same set of parameters is used across all nodes and edges in the graph, similarly to the convolution operation in CNNs.
+In fact, GNNs can be seen as a generalisation of CNNs to arbitrary graph structures.
+
+#### Message Passing Neural Networks
+
+The Message Passing Neural Network (MPNN) framework <d-cite key="gilmerNeuralMessagePassing2017"></d-cite> is a useful abstraction which unifies a number of GNN architectures.
+In this framework, computation occurs in a series of message-passing layers $$l \in 1, 2, \ldots, L$$, where each layer consists of two main steps: message passing and updates.
+Let $$h_{v_i}^{(l)}$$ denote the embedding of node $$v_i$$ in layer $$l$$.
+Typically, the initial node embeddings are set to the node features: $$h_{v_i}^{(0)} = \mathbf{x}_{v_i},\ \forall v_i \in V$$.
+We define the neighbourhood $$\mathcal{N}(v_i)$$ of node $$v_i$$ to be the set of nodes that are directly connected to it. 
+Then, the following operations are performed for each node $$v_i$$:
+
+$$\mathbf{m}_{v_i}^{(l+1)} = \sum_{v_j \in \mathcal{N}(v_i)} M^{(l)}(\mathbf{h}_{v_i}^{(l)}, \mathbf{h}_{v_j}^{(l)}, \mathbf{x}_{e_{i,j}})$$
+
+$$\mathbf{h}_{v_i}^{(l+1)} = U^{(l)}(\mathbf{h}_{v_i}^{(l)}, \mathbf{m}_{v_i}^{(l+1)})$$
+
+Here, $$M^{(l)}$$ is the message function that computes messages from neighbouring nodes, and $$U^{(l)}$$ is the update function that updates the node embedding based on the aggregated messages.
+Typically, $$M^{(l)}$$ and $$U^{(l)}$$ are parameterised by neural networks such as MLPs.
+The sum operation can be replaced with other permutation-invariant operations such as mean or max aggregation.
+
+> add figure of message passing step (darvariu et al 2024)
+
+By applying several layers of parameterised message functions and update functions, each node obtains a final embedding $$\mathbf{z}_{v_i} = \mathbf{h}_{v_i}^{(L)}$$.
+This embedding captures information from its $$L$$-hop neighbourhood.
+In a given layer, all nodes perform the message passing and update steps simultaneously.
+
+So far, we have only specified how node embeddings are calculated.
+In order to compute a graph-level embedding, we need to apply a readout function $$\mathcal{I}$$ to the final node embeddings:
+
+$$\mathcal{I}(\{\mathbf{h}_{v_i}^{(L)} | v_i \in V \})$$
+
+The readout function can be manually specified to suit the task, or can be learned  <d-cite key="ying2018hierarchical"></d-cite>. 
+In order to preserve permutation invariance, the readout function must also be permutation invariant.
+
+Many popular GNN architectures can be expressed using this message-passing framework, including Graph Convolutional Networks (GCNs) <d-cite key="kipfSemiSupervisedClassificationGraph2017"></d-cite>, Graph Attention Networks (GATs) <d-cite key="velickovic2018graph"></d-cite>, and GraphSAGE <d-cite key="hamiltonInductiveRepresentationLearning2017"></d-cite>.
+
+
 
 
 ## Traditional Deep Reinforcement Learning
@@ -199,7 +255,7 @@ However, methods like summation are sensitive to the size of the graph, which ca
 Similarly, if using node embeddings directly, care must be taken in the selection of the aggregation method to preserve generalisation to different graph structures, for example if a larger number of neighbours are present than seen during training.
 
 #### Example
-+ Li et. al. <d-cite key="liMessageAwareGraphAttention2021"></d-cite> approach a distributed multi-robot path planning problem where agents can communicate with adjacent robots, represented by a dynamic distance-based communication graph. At each step, an agent can take an action from {up, down, left, right, idle}. Each agent observes obstacles within their field of view, which is processed by a CNN to produce node features. These features are communicated with neighbouring agents according to the graph structure, executing the message passing of the GNN in a distributed manner. To obtain the action distribution, the aggregated node embeddings are passed to an MLP followed by a softmax layer: $$f : \mathbb{R}^d \rightarrow \mathbb{R}^{5}$$, where $$d$$ is the dimension of the node embeddings.
++ Li et al.. <d-cite key="liMessageAwareGraphAttention2021"></d-cite> approach a distributed multi-robot path planning problem where agents can communicate with adjacent robots, represented by a dynamic distance-based communication graph. At each step, an agent can take an action from {up, down, left, right, idle}. Each agent observes obstacles within their field of view, which is processed by a CNN to produce node features. These features are communicated with neighbouring agents according to the graph structure, executing the message passing of the GNN in a distributed manner. To obtain the action distribution, the aggregated node embeddings are passed to an MLP followed by a softmax layer: $$f : \mathbb{R}^d \rightarrow \mathbb{R}^{5}$$, where $$d$$ is the dimension of the node embeddings.
 
 
 ### Neighbours as Actions
@@ -216,9 +272,9 @@ From these scores, an action distribution can be created, or the highest scoring
 > insert diagram of GNN producing node embeddings, scoring neighbours for action selection
 
 #### Examples
-+ Goeckner et. al. <d-cite key="goecknerGraphNeuralNetworkbased2024"></d-cite> pose a patrolling problem in which a team of agents must overcome partial observability, distrubed communications, and agent attrition. At each step, an agent chooses a node to move to from its current location $$v$$. To do this, the GNN-based embedding of each neighbour $$\{z_u | u \in \mathcal{N}(v)\}$$ is passed through a scoring MLP, $$\text{SCORE}: \mathbb{R}^d \rightarrow \mathbb{R}$$.
++ Goeckner et al.. <d-cite key="goecknerGraphNeuralNetworkbased2024"></d-cite> pose a patrolling problem in which a team of agents must overcome partial observability, distrubed communications, and agent attrition. At each step, an agent chooses a node to move to from its current location $$v$$. To do this, the GNN-based embedding of each neighbour $$\{z_u | u \in \mathcal{N}(v)\}$$ is passed through a scoring MLP, $$\text{SCORE}: \mathbb{R}^d \rightarrow \mathbb{R}$$.
 The scores of the neighbours are then passed to a selection MLP, which outputs the index of the action to take.
-+ Pisacane et. al. <d-cite key="pisacaneReinforcementLearningDiscovers2024"></d-cite> approach a decentralised graph path search problem using only local information. Each node in the graph represents an agent, and each node is assigned an attribute vector $$\mathbf{x}_{u_i} \in \mathbb{R}^d$$. Given a target node $$u_{\text{tgt}}$$, the agent at node $$u_i$$ must select one of its neighbours to forward a message $$\mathbf{m} \in \mathbb{R}^d$$ to, with the goal of reaching the target node in as few hops as possible. To choose which neighbour should receive the message, a value estimate for each neighbour is generated using an MLP $$f$$, based on the embedding of the neighbour node and the embedding of the target node: $$v(u_i, u_{\text{tgt}}) = f_v([\mathbf{z}_{u_i} \| \mathbf{z}_{u_{\text{tgt}}}])$$. An action distribution is created by passing the value estimates through a softmax layer to get probabilities.
++ Pisacane et al.. <d-cite key="pisacaneReinforcementLearningDiscovers2024"></d-cite> approach a decentralised graph path search problem using only local information. Each node in the graph represents an agent, and each node is assigned an attribute vector $$\mathbf{x}_{u_i} \in \mathbb{R}^d$$. Given a target node $$u_{\text{tgt}}$$, the agent at node $$u_i$$ must select one of its neighbours to forward a message $$\mathbf{m} \in \mathbb{R}^d$$ to, with the goal of reaching the target node in as few hops as possible. To choose which neighbour should receive the message, a value estimate for each neighbour is generated using an MLP $$f$$, based on the embedding of the neighbour node and the embedding of the target node: $$v(u_i, u_{\text{tgt}}) = f_v([\mathbf{z}_{u_i} \| \mathbf{z}_{u_{\text{tgt}}}])$$. An action distribution is created by passing the value estimates through a softmax layer to get probabilities.
 
 
 ### Nodes as Actions
@@ -228,12 +284,14 @@ This is particularly useful in environments where the agent can select any node 
 Using this action space, an agent can be trained on graphs of small sizes, and learn a policy that generalises to much larger graphs at test time.
 
 #### Score-Based
+> add picture
 Similarly to the neighbours-as-actions approach, the node embeddings produced by the GNN can be scored to produce action values or action probabilities.
 
 ##### Example
-+ In Darvariu et. al. <d-cite key="darvariuGoaldirectedGraphConstruction2021"></d-cite>, edges are to be added to a graph in order to maximise the robustness of the graph's connectivity against edge removals. The authors use Q-learning to derive a policy from action-value estimates for each node in the graph. The edge construction is posed as a two-step process: first selecting a source node, then a destination node. Given a proposed source node $$v$$, the Q-value in a graph state $$G$$ is given by $$Q(G, v) = f_1([\mathbf{z}_v \| \mathbf{z}_G])$$, where $$\mathbf{z}_G$$ is the graph-level embedding obtained via pooling and $$\mathbf{z}_v$$ is the node-level embedding of node $$v$$. After a source node is selected, a action-value estimates for the destination node $$u$$ are calculated using $$f_2([\mathbf{z}_v \| \mathbf{z}_u \| \mathbf{z}_G])$$. Here, $$f_1$$ and $$f_2$$ are 2-layer MLPs.
++ In Darvariu et al.. <d-cite key="darvariuGoaldirectedGraphConstruction2021"></d-cite>, edges are to be added to a graph in order to maximise the robustness of the graph's connectivity against edge removals. The authors use Q-learning to derive a policy from action-value estimates for each node in the graph. The edge construction is posed as a two-step process: first selecting a source node, then a destination node. Given a proposed source node $$v$$, the Q-value in a graph state $$G$$ is given by $$Q(G, v) = f_1([\mathbf{z}_v \| \mathbf{z}_G])$$, where $$\mathbf{z}_G$$ is the graph-level embedding obtained via pooling and $$\mathbf{z}_v$$ is the node-level embedding of node $$v$$. After a source node is selected, a action-value estimates for the destination node $$u$$ are calculated using $$f_2([\mathbf{z}_v \| \mathbf{z}_u \| \mathbf{z}_G])$$. Here, $$f_1$$ and $$f_2$$ are 2-layer MLPs.
 
 #### Proto-Action
+> add picture
 
 Another method of selecting a node is to use a "proto-action": the network outputs a vector which represents the best action given the state.
 Once we know what the embedding of the desired action looks like, we can choose which action to take based on those available.
@@ -250,8 +308,8 @@ graph TD
 ```
 
 ##### Examples
-+ Darvariu et. al. <d-cite key="darvariuSolvingGraphbasedPublic2021"></d-cite> approach a public goods game, reformulated as finding a maximal independent set in a graph. At each step, a node is selected from the graph to add to the set, until no valid nodes remain. The authors create a proto-action by first summing the node embeddings and then passing it through an MLP. An action distribution is created by taking the Euclidean distance between the proto-action and each node embedding, passing these distances through a softmax layer to get probabilities.
-+ Trivedi et. al. <d-cite key="trivediGraphOptLearningOptimization2020"></d-cite> seek to learn generative mechanisms for graph-structured data. Edges are formed by sampling two nodes from a Gaussian policy following $$\mathbf{a}^{(1)}, \mathbf{a}^{(2)} \sim \mathcal{N}(\mathbf{\mu}, \log(\mathbf{\sigma}^2))$$ given the policy $$\pi(s) = [\mathbf{\mu}, \log(\mathbf{\sigma}^2)] = g(Enc(s))$$, where $$g$$ is a 2 layer MLP and $$Enc$$ is a GNN.
++ Darvariu et al.. <d-cite key="darvariuSolvingGraphbasedPublic2021"></d-cite> approach a public goods game, reformulated as finding a maximal independent set in a graph. At each step, a node is selected from the graph to add to the set, until no valid nodes remain. The authors create a proto-action by first summing the node embeddings and then passing it through an MLP. An action distribution is created by taking the Euclidean distance between the proto-action and each node embedding, passing these distances through a softmax layer to get probabilities.
++ Trivedi et al.. <d-cite key="trivediGraphOptLearningOptimization2020"></d-cite> seek to learn generative mechanisms for graph-structured data. Edges are formed by sampling two nodes from a Gaussian policy following $$\mathbf{a}^{(1)}, \mathbf{a}^{(2)} \sim \mathcal{N}(\mathbf{\mu}, \log(\mathbf{\sigma}^2))$$ given the policy $$\pi(s) = [\mathbf{\mu}, \log(\mathbf{\sigma}^2)] = g(Enc(s))$$, where $$g$$ is a 2 layer MLP and $$Enc$$ is a GNN.
 
 <!-- TODO: \mathcal{N} redefinition conflict with neighbour notation -->
 
@@ -262,6 +320,8 @@ For example, in a network routing problem, an agent may need to select edges to 
 
 As we saw in <d-cite key="darvariuGoaldirectedGraphConstruction2021"></d-cite> and <d-cite key="trivediGraphOptLearningOptimization2020"></d-cite>, one method of selecting edges is simply to decompose the edge selection into a pair of node selections.
 While this approach is strightforward and works with existing GNN architectures, it can be less efficient, effectively doubling the number of forward passes required to select an edge.
+
+> add picture
 
 Given an edge embedding, edges could be selected in a similar manner to nodes, either through scoring or proto-action methods.
 However, most GNN architectures do not produce edge-level embeddings directly, instead prioritising node-level embeddings.
