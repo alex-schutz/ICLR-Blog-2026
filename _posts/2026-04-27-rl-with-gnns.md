@@ -89,13 +89,13 @@ The key neural components in this architecture are the observation encoder and t
 The observation encoder processes raw observations from the environment (e.g., images, sensor data) into a latent representation.
 The value/policy network then takes this latent representation as input and outputs either the estimated value of each action (in value-based methods) or the parameters of the action distribution (in policy-based methods).
 
-- List some examples of benchmark RL problems and their observation space and action space
+<!-- Let's have a look at some popular deep RL benchmark problems.
+- **Lunar Lander**: 
+  - Observation space: 8-dimensional vector -- lander coordinates, velocities, and contacts.
+  - Action space: $$\{0, 1, 2, 3\}$$ -- do nothing, fire left engine, fire main engine, fire right engine. -->
 
-- Limitations of traditional deep RL methods:
-  - Fixed-size action spaces
-  - Poor generalisation to larger or smaller problem instances
-- Can achieve generalisation through tricks like padding or breaking up the space, partial observability
-  - Example and how it breaks
+
+As powerful and well-studied as these methods are, there are a number of limitations inherent in their representational power, which we discuss below.
 
 ### Permutation Sensitivity
 Graphs nominally enjoy the property of permutation invariance: regardless of the ordering of the nodes, the properties are the same, as only the *relationships* between the nodes are important.
@@ -117,6 +117,20 @@ Without considering this kind of permutation invariance, there are **eight times
 In a simple environment like tic-tac-toe we can easily modify the state representation to collapse symmetries and avoid this issue.
 However, in general, permutation invariance is not always an easy property to engineer.
 This is where GNNs can be very useful, as permutation invariance is an intrinsic property of the network, inherently collapsing equivalent state representations for free.
+
+
+### Action Spaces
+
+- imagine navigating in a map, there are up to n doors in each room so you make that the action space (pad it for rooms with less doors)
+  - on a new map if there are n+1 doors the policy does not work, matrix is the wrong shape, have to retrain the policy entirely
+  - this has led to popularity of grid worlds where actions have a fixed shape
+  - we could instead use the neighbours as possible actions (GNN)
+
+### Size Generalisation
+- traditional network on adjacency matrix means imposing max size, what if one more node gets added? broken
+- in a graph structure the number of nodes is fully flexible
+- Can achieve generalisation through tricks like padding or breaking up the space, partial observability
+  - Example and how it breaks
 
 ## Reinforcement Learning with Graph Neural Networks
 
@@ -145,26 +159,59 @@ Finally, we will define a categorical *node feature* $$\in \{0, 1, 2\}$$, which 
 
 ### Fixed Action Spaces
 
-- nodes to graph embedding via pooling
-  - best to be permutation invariant
-- graph embedding to action space via MLP or similar
-- examples
+The most straightforward way to use a GNN in RL is to use it as a feature extractor for environments with fixed action spaces.
+In this case, the GNN processes the graph-structured observation from the environment and produces a graph or node-level embedding vector.
+This vector is then passed to an MLP or similar network to produce action values or action probabilities.
 
+> insert diagram of GNN feature extractor feeding into MLP for action selection
+
+When using a GNN as a feature extractor, there are two main approaches to obtaining the action space from the graph embedding: pooling the node embeddings to get a graph-level embedding, or using the node embeddings directly.
+If the graph embedding is pooled to a single vector, it is important to consider the pooling method used.
+Common pooling methods include mean pooling, max pooling, and sum pooling.
+These methods are permutation invariant, meaning that the order of the nodes does not affect the resulting graph embedding.
+However, methods like summation are sensitive to the size of the graph, which can lead to issues when generalising to larger or smaller graphs.
+Similarly, if using node embeddings directly, care must be taken in the selection of the aggregation method to preserve generalisation to different graph structures, for example if a larger number of neighbours are present than seen during training.
+
+#### Example
++ Li et. al. <d-cite key="liMessageAwareGraphAttention2021"></d-cite> approach a distributed multi-robot path planning problem where agents can communicate with adjacent robots, represented by a dynamic distance-based communication graph. At each step, an agent can take an action from {up, down, left, right, idle}. Each agent observes obstacles within their field of view, which is processed by a CNN to produce node features. These features are communicated with neighbouring agents according to the graph structure, executing the message passing of the GNN in a distributed manner. To obtain the action distribution, the aggregated node embeddings are passed to an MLP followed by a softmax layer: $$f : \mathbb{R}^d \rightarrow \mathbb{R}^{5}$$, where $$d$$ is the dimension of the node embeddings.
 
 ### Neighbours as Actions
 
 - GNN outputs node-level embeddings
 - use node embeddings to get scores (value-based)
 
+1. <d-cite key="goecknerGraphNeuralNetworkbased2024"></d-cite> specify a node of interest, $$v$$, then pass the GNN-based embedding of each of its neighbours, $$\{z_u | u \in \mathcal{N}(v)\}$$, through a scoring MLP, $$\text{SCORE}: \mathbb{R}^d \rightarrow \mathbb{R}$$.
+The scores of the neighbours are then passed to a selection MLP, which outputs the index of the action to take.
+1. <d-cite key="pisacaneReinforcementLearningDiscovers2024"></d-cite> generate value estimates for each neighbour using an MLP $$f$$ based on the embedding of the neighbour node and the embedding of a target node which is to be reached: $$v(u_i, u_{\text{tgt}}) = f_v([\mathbf{z}_{u_i} \| \mathbf{z}_{u_{\text{tgt}}}])$$. An action distribution is created by passing the value estimates through a softmax layer to get probabilities.
+
 ### Nodes as Actions
 
 - GNN outputs node-level embeddings
 - use previous score based approach for value based approach
-- or use proto-action approach (policy-based)
-- examples
+
+1. <d-cite key="darvariuGoaldirectedGraphConstruction2021"></d-cite> use Q-learning to derive a policy from action-value estimates for each node in the graph. The problem is posed as a graph construction task, where new edges are added to the graph in two steps: first selecting a source node, then a destination node. Given a proposed source node $$v$$, the Q-value in a graph state $$G$$ is given by $$Q(G, v) = f_1([\mathbf{z}_v \| \mathbf{z}_G])$$, where $$\mathbf{z}_G$$ is the graph-level embedding obtained via pooling and $$\mathbf{z}_v$$ is the node-level embedding of node $$v$$. After a source node is selected, a action-value estimates for the destination node $$u$$ are calculated using $$f_2([\mathbf{z}_v \| \mathbf{z}_u \| \mathbf{z}_G])$$. Here, $$f_1$$ and $$f_2$$ are 2-layer MLPs.
 
 #### Proto-Action
 
+One method of selecting a node is to use a sort of "proto-action": the network outputs a vector which represents the best action for the state.
+Once we know what the embedding of the desired action looks like, we can choose which action to take based on what's available.
+The proto-action gets compared to the node embeddings of the other available actions using a scoring function, from which we can then produce a probability distribution or choose an action directly.
+The inspiration for this approach comes from <d-cite key="dulac-arnoldDeepReinforcementLearning2016"></d-cite>, where the authors use a similar method to select actions in a continuous action space.
+
+```mermaid
+graph TD
+    A[Node Embeddings] --> B[Action Predictor]
+	B --> E[Proto-Action]
+	E --> C[Scoring Function]
+	A --> C
+	C --> D[Action Selection]
+```
+
+#### Examples
+1. Darvariu et. al. create a proto-action by first summing the node embeddings and then passing it through an MLP <d-cite key="darvariuSolvingGraphbasedPublic2021"></d-cite>. An action distribution is created by taking the Euclidean distance between the proto-action and each node embedding, passing these distances through a softmax layer to get probabilities.
+2. Trivedi et. al. sample actions from a Gaussian policy following $$\mathbf{a} \sim \mathcal{N}(\mathbf{\mu}, \log(\mathbf{\sigma}^2))$$ given the policy $$\pi(s) = [\mathbf{\mu}, \log(\mathbf{\sigma}^2)] = g(Enc(s))$$, where $$g$$ is a 2 layer MLP and $$Enc$$ is a GNN <d-cite key="trivediGraphOptLearningOptimization2020"></d-cite>.
+
+<!-- TODO: \mathcal{N} redefinition conflict with neighbour notation -->
 
 ### Edges as Actions
 
