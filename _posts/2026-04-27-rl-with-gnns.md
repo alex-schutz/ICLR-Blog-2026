@@ -148,14 +148,8 @@ Deep RL refers to the integration of deep learning techniques with RL algorithms
 In particular, deep neural networks are used as function approximators for the value function or policy function. 
 Here's what a typical deep RL architecture might look like:
 
-```mermaid
-graph TD
-	A[Environment] --> B[Observation]
-	B --> C[Observation Encoder]
-	C --> D[Value Network / Policy Network]
-	D --> E[Action]
-	E --> A
-```
+{% include figure.liquid path="assets/img/2026-04-27-rl-with-gnns/deep_rl.svg" class="img-fluid" alt="A diagram showing the flow of data in a deep reinforcement learning architecture, from environment to observation, observation encoder, value/policy network, action, and back to environment." caption="A simplified representation of a general deep RL workflow." %}
+
 
 The key neural components in this architecture are the observation encoder and the value/policy network.
 The observation encoder processes raw observations from the environment (e.g., images, sensor data) into a latent representation.
