@@ -100,7 +100,7 @@ However, these methods often fail to capture complex relationships in the graph.
 Deep graph embedding methods aim to learn the representation by training end-to-end with task-specific supervision signals.
 Graph Neural Networks (GNNs) are a class of deep learning models designed to operate on graph-structured data.
 
-> add figure showing node embedding of karate graph like in slides
+{% include figure.liquid path="assets/img/2026-04-27-rl-with-gnns/karate_graph.svg" class="img-fluid" alt="" caption="TODO: Replace this image with own version or get permission from the copyright holder https://arxiv.org/abs/1403.6652." %}
 
 GNNs rely on the neighbourhood aggregation principle: the features of a node are learned by aggregating the features of its neighbours using a learnable parameterisation and an activation function.
 Typically, GNNs are parameter sharing architectures, where the same set of parameters is used across all nodes and edges in the graph, similarly to the convolution operation in CNNs.
@@ -266,7 +266,7 @@ The most straightforward way to use a GNN in RL is to use it as a feature extrac
 In this case, the GNN processes the graph-structured observation from the environment and produces a graph or node-level embedding vector.
 This vector is then passed to an MLP or similar network to produce action values or action probabilities.
 
-> insert diagram of GNN feature extractor feeding into MLP for action selection
+{% include figure.liquid path="assets/img/2026-04-27-rl-with-gnns/fixed_action_space.svg" class="img-fluid" alt="A GNN embedding creates feature vectors for each node in a graph. These are passed to a pooling function (sum operator) to create a graph embedding. The graph embedding is fed to a MLP + softmax block, which produces an action distribution with a fixed dimension." caption="For a fixed action space, the GNN can be used as a feature extractor, with the resulting graph or node embeddings passed to an MLP to produce action values or probabilities." %}
 
 When using a GNN as a feature extractor, there are two main approaches to obtaining the action space from the graph embedding: pooling the node embeddings to get a graph-level embedding, or using the node embeddings directly.
 If the graph embedding is pooled to a single vector, it is important to consider the pooling method used.
@@ -291,7 +291,7 @@ This type of action space is particularly useful in decentralised multi-agent se
 When using neighbours as actions, the typical approach is to use the GNN to produce node-level embeddings, which are then used to score the neighbours of the current node.
 From these scores, an action distribution can be created, or the highest scoring neighbour can be selected directly.
 
-> insert diagram of GNN producing node embeddings, scoring neighbours for action selection
+{% include figure.liquid path="assets/img/2026-04-27-rl-with-gnns/neighbours_action_space.svg" class="img-fluid" alt="A GNN embedding creates feature vectors for the neighbours of a node of interest within a graph. These are passed to a scoring function in the form of an MLP. The scores can be used to create an action distribution using softmax." caption="Given a node of interest, the node embeddings of its neighbours can be passed through a scoring function to generate an action distribution." %}
 
 #### Examples
 + Goeckner et al. <d-cite key="goecknerGraphNeuralNetworkbased2024"></d-cite> pose a patrolling problem in which a team of agents must overcome partial observability, distributed communications, and agent attrition. At each step, an agent chooses a node to move to from its current location $$v$$. To do this, the GNN-based embedding of each neighbour $$ \{z_u \mid u \in \mathcal{N}(v) \}$$ is passed through a scoring MLP, $$\text{SCORE}: \mathbb{R}^d \rightarrow \mathbb{R}$$. The scores of the neighbours are then passed to a selection MLP, which outputs the index of the action to take. The policies of the agents are trained using a variant of multi-agent PPO (MAPPO).
