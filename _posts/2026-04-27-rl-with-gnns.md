@@ -315,7 +315,7 @@ Using this action space, an agent can be trained on graphs of small sizes, and l
 Similarly to the neighbours-as-actions approach, the node embeddings produced by the GNN can be scored to produce action values or action probabilities.
 
 ##### Example
-+ In Darvariu et al. <d-cite key="darvariuGoaldirectedGraphConstruction2021"></d-cite>, edges are to be added to a graph in order to maximise the robustness of the graph's connectivity against edge removals. The authors use Q-learning to derive a policy from action-value estimates for each node in the graph. The edge construction is posed as a two-step process: first selecting a source node, then a destination node. Given a proposed source node $$v$$, the Q-value in a graph state $$G$$ is given by $$Q(G, v) = f_1([\mathbf{z}_v \| \mathbf{z}_G])$$, where $$\mathbf{z}_G$$ is the graph-level embedding obtained via pooling and $$\mathbf{z}_v$$ is the node-level embedding of node $$v$$. After a source node is selected, a action-value estimates for the destination node $$u$$ are calculated using $$f_2([\mathbf{z}_v \| \mathbf{z}_u \| \mathbf{z}_G])$$. Here, $$f_1$$ and $$f_2$$ are 2-layer MLPs, and the policy is trained using DQN. This approach is similar to that of Khalil et al. <d-cite key="khalilLearningCombinatorialOptimization2017"></d-cite>.
++ Khalil et al. <d-cite key="Khalil2017LearningCO"></d-cite> approach combinatorial optimisation problems such as the travelling salesman problem (TSP) and minimum vertex cover (MVC) using Q-learning. At each step, a node is selected from the graph to be added to the solution set. The action-value estimate for each node $$v$$ in graph state $$G$$ is given by $$Q(G, v) = f([\mathbf{z}_G \| \mathbf{z}_v])$$, where $$\mathbf{z}_G$$ is the graph-level embedding obtained via pooling and $$\mathbf{z}_v$$ is the GNN embedding of node $$v$$. Here, $$f$$ is a 2-layer MLP.
 
 #### Proto-Action
 > add picture
@@ -342,11 +342,13 @@ graph TD
 
 ### Edges as Actions
 
-In some types of problems, the actions naturally correpond to edges in the graph, rather than nodes.
+In some types of problems, the actions naturally correspond to edges in the graph, rather than nodes.
 For example, in a network routing problem, an agent may need to select edges to route data packets through a network.
 
-As we saw in <d-cite key="darvariuGoaldirectedGraphConstruction2021"></d-cite> and <d-cite key="trivediGraphOptLearningOptimization2020"></d-cite>, one method of selecting edges is simply to decompose the edge selection into a pair of node selections.
-While this approach is strightforward and works with existing GNN architectures, it can be less efficient, effectively doubling the number of forward passes required to select an edge.
+One method of selecting edges is to decompose the edge selection into a pair of node selections.
+In Darvariu et al. <d-cite key="darvariuGoaldirectedGraphConstruction2021"></d-cite>, edges are to be added to a graph in order to maximise the robustness of the graph's connectivity against edge removals. The edge construction is posed as a two-stage process: first selecting a source node, then a destination node. Nodes are selected using a similar architecture to Khalil et al. <d-cite key="Khalil2017LearningCO"></d-cite>, using a separate MLP for each stage.
+In fact, the nodes do not need to be selected sequentially: Trivedi et al. <d-cite key="trivediGraphOptLearningOptimization2020"></d-cite> select both nodes simultaneously by sampling from the same Gaussian policy.
+While this approach is straightforward and works with existing GNN architectures, it can be less efficient, and is not necessarily optimal if edge attributes are important.
 
 > add picture
 
