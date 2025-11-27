@@ -234,7 +234,7 @@ We will define edges such that two nodes are connected by an edge if they are ad
 Finally, we will define a categorical node feature $$\in \{0, 1, 2\}$$, which tells us that the node contains a blank space, $$\texttt{X}$$, or $$\texttt{O}$$ respectively.
 With this graph representation of the environment, different rotations or symmetries of the board will lead to isomorphic graphs, which the GNN will inherently treat as the same.
 
-> add figure showing tic tac toe as graph
+{% include figure.liquid path="assets/img/2026-04-27-rl-with-gnns/tictactoe.svg" class="img-fluid" alt="The game of tic-tac-toe is represented as a graph, with 9 nodes and edges connecting positions in the same horizontal, vertical, or diagonal row. An X, O or - represents the current state of each node." caption="The state in a tic-tac-toe game can be represented as a graph, collapsing equivalent states." %}
 
 Another example where GNNs can be useful is in multi-agent collaboration tasks.
 In multi-agent systems, agents often need to communicate and coordinate with each other to achieve a common goal.
