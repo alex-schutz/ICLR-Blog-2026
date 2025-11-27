@@ -43,7 +43,6 @@ toc:
       - name: Nodes as Actions
       - name: Edges as Actions
   - name: Future Avenues
-  - name: Implementation Example
   - name: Conclusion
 
 
@@ -380,8 +379,6 @@ Presently, there is a lack of standardised support for graph-based environments 
 While libraries such as PyTorch Geometric <d-cite key="fey2019fast"></d-cite> and Deep Graph Library <d-cite key="wang2019deep"></d-cite> provide implementations of various GNN architectures, integrating these with RL frameworks such as Stable Baselines3 <d-cite key="raffin2021stable"></d-cite> or RLlib <d-cite key="liang2018rllib"></d-cite> can be non-trivial.
 Improved support for graph-based RL in these libraries would facilitate further research and development in this area.
 In addition, standardised benchmarks and evaluation protocols for GNN-based RL methods would help to compare different approaches and identify best practices.
-
-## Implementation Example
 
 ## Conclusion
 
