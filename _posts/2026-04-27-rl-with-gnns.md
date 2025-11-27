@@ -51,6 +51,7 @@ toc:
 
 ## Introduction
 
+
 > add picture of GNN in RL setting. use different action spaces as examples. two graphs going into GNN, different action space outputs.
 
 Graph Neural Networks (GNNs) have gained significant attention in recent years due to their ability to model relational data and capture complex interactions between entities.
@@ -176,7 +177,7 @@ As powerful and well-studied as these methods are, there are a number of limitat
 Graphs nominally enjoy the property of permutation invariance: regardless of the ordering of the nodes, the properties are the same, as only the *relationships* between the nodes are important.
 When we write down a graph's representation using an adjacency matrix, we implicitly create an ordering of the nodes.
 
-> insert figure showing one graph that leads to two adjacency matrices
+{% include figure.liquid path="assets/img/2026-04-27-rl-with-gnns/permutation.svg" class="img-fluid" alt="A four-node graph, where three nodes are connected in a triangle and the fourth is connected to the top node in the triangle. Two different adjacency matrices which both represent the graph are shown on the left and right." caption="The same graph can be represented using different adjacency matrices depending on the ordering of the nodes." %}
 
 If we use the matrix representation of the graph as input to a neural network, we lose the property of permutation invariance.
 The two adjacency matrices above are created from the same graph. Fed to an MLP, we get two very different outputs.
@@ -247,7 +248,6 @@ While GNNs offer several advantages in RL settings, it can be non-trivial to des
 In the following sections, we discuss common design approaches seen in the literature for applying GNNs in RL settings.
   
 ## Environments as Graphs
-<!-- todo: explicitly talk about the RL methods used in each example -->
 <!-- todo: highlight advantage of GNNs in each example -->
 
 In order to use GNNs in RL, we need to represent the environment as a graph.
