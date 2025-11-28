@@ -339,7 +339,7 @@ In Darvariu et al. <d-cite key="darvariuGoaldirectedGraphConstruction2021"></d-c
 In fact, the nodes do not need to be selected sequentially: Trivedi et al. <d-cite key="trivediGraphOptLearningOptimization2020"></d-cite> select both nodes simultaneously by sampling from the same Gaussian policy.
 While this approach is straightforward and works with existing GNN architectures, it can be less efficient, and is not necessarily optimal if edge attributes are important.
 
-> add picture
+{% include figure.liquid path="assets/img/2026-04-27-rl-with-gnns/edges_action_space.svg" class="img-fluid" alt="Edge embeddings are created for each edge in a graph. These are passed to a scoring function in the form of an MLP. The scores can be used to create an action distribution over edges using softmax." caption="Using an embedding of the edges, a function can be applied to create an action distribution over edges in the graph." %}
 
 Given an edge embedding, edges could be selected in a similar manner to nodes, either through scoring or proto-action methods.
 However, most GNN architectures do not produce edge-level embeddings directly, instead prioritising node-level embeddings.
