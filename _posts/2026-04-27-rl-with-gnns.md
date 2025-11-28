@@ -315,21 +315,13 @@ Similarly to the neighbours-as-actions approach, the node embeddings produced by
 + Khalil et al. <d-cite key="Khalil2017LearningCO"></d-cite> approach combinatorial optimisation problems such as the travelling salesman problem (TSP) and minimum vertex cover (MVC) using Q-learning. At each step, a node is selected from the graph to be added to the solution set. The action-value estimate for each node $$v$$ in graph state $$G$$ is given by $$Q(G, v) = f([\mathbf{z}_G \| \mathbf{z}_v])$$, where $$\mathbf{z}_G$$ is the graph-level embedding obtained via pooling and $$\mathbf{z}_v$$ is the GNN embedding of node $$v$$. Here, $$f$$ is a 2-layer MLP.
 
 #### Proto-Action
-> add picture
 
 Another method of selecting a node is to use a "proto-action": the network outputs a vector which represents the best action given the state.
 Once we know what the embedding of the desired action looks like, we can choose which action to take based on those available.
 The proto-action gets compared to the node embeddings of the other available actions using a scoring function, from which we can then produce a probability distribution or choose an action directly.
 The inspiration for this approach comes from <d-cite key="dulac-arnoldDeepReinforcementLearning2016"></d-cite>, where the authors use a similar method to select actions in a continuous action space.
 
-```mermaid
-graph TD
-    A[Node Embeddings] --> B[Action Predictor]
-	B --> E[Proto-Action]
-	E --> C[Scoring Function]
-	A --> C
-	C --> D[Action Selection]
-```
+{% include figure.liquid path="assets/img/2026-04-27-rl-with-gnns/proto_action.svg" class="img-fluid" alt="Feature vectors for all nodes are passed through a pooling layer and an action predictor to create a proto-action. The proto-action is used to compare against node embeddings in a scoring function. The scores can be used to create an action distribution using softmax." caption="A proto-action is created from the pooled node embeddings, and compared to the embedding of each node in a scoring function to create an action distribution." %}
 
 ##### Examples
 + Darvariu et al. <d-cite key="darvariuSolvingGraphbasedPublic2021"></d-cite> approach a public goods game, reformulated as finding a maximal independent set in a graph. At each step, a node is selected from the graph to add to the set, until no valid nodes remain. The authors create a proto-action by first summing the node embeddings and then passing it through an MLP. An action distribution is created by taking the Euclidean distance between the proto-action and each node embedding, passing these distances through a softmax layer to get probabilities. Here the policy is trained using imitation learning.
