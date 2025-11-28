@@ -306,6 +306,7 @@ Using this action space, an agent can be trained on graphs of small sizes, and l
 
 #### Score-Based
 > add picture
+
 Similarly to the neighbours-as-actions approach, the node embeddings produced by the GNN can be scored to produce action values or action probabilities.
 
 ##### Example
