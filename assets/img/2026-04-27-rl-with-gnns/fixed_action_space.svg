@@ -25,12 +25,12 @@
      inkscape:deskcolor="#d1d1d1"
      inkscape:document-units="mm"
      inkscape:zoom="2.0970679"
-     inkscape:cx="239.85871"
-     inkscape:cy="201.47178"
-     inkscape:window-width="2560"
-     inkscape:window-height="1378"
+     inkscape:cx="431.31651"
+     inkscape:cy="149.9713"
+     inkscape:window-width="1920"
+     inkscape:window-height="1016"
      inkscape:window-x="0"
-     inkscape:window-y="25"
+     inkscape:window-y="27"
      inkscape:window-maximized="1"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -273,17 +273,17 @@
        transform="translate(0,12.186743)"><tspan
          x="99.878652"
          y="26.132693"
-         id="tspan3"><tspan
+         id="tspan8"><tspan
            style="stroke:none"
-           id="tspan2">MLP + </tspan></tspan><tspan
+           id="tspan1">MLP + </tspan></tspan><tspan
          x="98.310446"
          y="31.777132"
-         id="tspan5"><tspan
+         id="tspan10"><tspan
            style="stroke:none"
-           id="tspan4">Softmax</tspan></tspan></text>
+           id="tspan9">Softmax</tspan></tspan></text>
     <g
        id="g6"
-       transform="translate(0.067133,1.228838)">
+       transform="translate(0.067133,3.369983)">
       <rect
          style="fill:#a2a2a2;fill-opacity:1;stroke:#2e2e34;stroke-width:0.249958;stroke-linejoin:miter;stroke-dasharray:none;stroke-opacity:1"
          id="rect2"
@@ -312,16 +312,9 @@
          height="4"
          x="129.97498"
          y="40" />
-      <rect
-         style="fill:#a2a2a2;fill-opacity:1;stroke:#2e2e34;stroke-width:0.254558;stroke-linejoin:miter;stroke-dasharray:none;stroke-opacity:1"
-         id="rect6"
-         width="9"
-         height="4"
-         x="129.97498"
-         y="44" />
       <path
          style="fill:#a2a2a2;fill-opacity:1;stroke:#2e2e34;stroke-width:0.3;stroke-linejoin:miter;stroke-dasharray:none;stroke-opacity:1"
-         d="m 130,26.09243 v 24"
+         d="M 130,26.09243 V 45.810138"
          id="path6"
          sodipodi:nodetypes="cc" />
     </g>

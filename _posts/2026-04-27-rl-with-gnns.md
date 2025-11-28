@@ -305,9 +305,11 @@ This is particularly useful in environments where the agent can select any node 
 Using this action space, an agent can be trained on graphs of small sizes, and learn a policy that generalises to much larger graphs at test time.
 
 #### Score-Based
-> add picture
 
 Similarly to the neighbours-as-actions approach, the node embeddings produced by the GNN can be scored to produce action values or action probabilities.
+
+{% include figure.liquid path="assets/img/2026-04-27-rl-with-gnns/nodes_action_space.svg" class="img-fluid" alt="A GNN embedding creates feature vectors for all nodes in a graph. These are passed to a scoring function in the form of an MLP. The scores can be used to create an action distribution using softmax." caption="The embeddings of all nodes can be passed through a scoring function to generate an action distribution." %}
+
 
 ##### Example
 + Khalil et al. <d-cite key="Khalil2017LearningCO"></d-cite> approach combinatorial optimisation problems such as the travelling salesman problem (TSP) and minimum vertex cover (MVC) using Q-learning. At each step, a node is selected from the graph to be added to the solution set. The action-value estimate for each node $$v$$ in graph state $$G$$ is given by $$Q(G, v) = f([\mathbf{z}_G \| \mathbf{z}_v])$$, where $$\mathbf{z}_G$$ is the graph-level embedding obtained via pooling and $$\mathbf{z}_v$$ is the GNN embedding of node $$v$$. Here, $$f$$ is a 2-layer MLP.
