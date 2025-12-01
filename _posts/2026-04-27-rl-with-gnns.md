@@ -936,6 +936,17 @@ Full code for the environment can be found in the [accompanying GitHub repositor
 ### Training the Policy
 
 With the environment and policy defined, we can now train the GNN-based policy using SB3's PPO implementation.
+We will train on randomly generated graphs of size 5, 10 and 15 nodes.
+We validate the policy on graphs of size 15 at regular intervals during training.
+Here we train a 2-layer GAT with embedding dimension 128 on graphs with 100000 PPO steps.
+For comparison, we also train GCN and GraphSAGE architectures with the same parameters.
+
+<div class="c-page">
+  <iframe src="{{ 'assets/html/2026-04-27-rl-with-gnns/rewards_compare.html' | relative_url }}" frameborder='0' scrolling='no' height="500px" width="100%"></iframe>
+</div>
+
+From these plots, we can see that the GAT and GraphSAGE architectures are able to improve their policies with more training, while the GCN architecture struggles to learn an effective policy.
+
 
 ### Changing Graph Size at Test Time
 
@@ -955,6 +966,23 @@ def change_obs_action_space(
     return new_policy
 
 {% endhighlight %}
+
+Using this function, we can evaluate the trained policy on larger graphs.
+Here are the results for the above models evaluated on 20-node graphs.
+
+| Model | Mean Reward | Mean Episode Length |
+|-------|-------------|---------------------|
+| GAT | -8.02 ± 1.42 | 17.31 ± 0.80 |
+| GCN | -8.60 ± 1.41 | 17.76 ± 0.97 |
+| GraphSAGE | -5.82 ± 1.21 | 14.47 ± 0.97 |
+
+We can see that the GraphSAGE model is well-suited to the MVC task, and is able to generalise effectively to larger graphs.
+
+<!-- | Embedding Dimension | Mean Reward | Mean Episode Length |
+|-------|-------------|---------------------|
+| 64 | -8.14 ± 1.44 | 17.41 ± 0.99 |
+| 128 | -8.02 ± 1.42 | 17.31 ± 0.80 |
+| 256 | -7.92 ± 1.60 | 17.33 ± 1.07 | -->
 
 
 ## Future Avenues
