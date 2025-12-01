@@ -371,6 +371,9 @@ The MVC problem is defined on an undirected graph $$G = (V, E)$$ with node weigh
 The goal is to find a subset of nodes $$S \subseteq V$$ such that every edge $$ (u, v) \in E $$ has at least one endpoint in $$ S $$, while minimising the total weight of the selected nodes $$ \sum_{v \in S} w(v) $$.
 We will formulate this as a sequential decision-making problem, where at each step, the agent selects a node to add to the cover set until all edges are covered.
 
+<!-- TODO: add anonymous repo link -->
+Full code can be found in the [accompanying GitHub repository](), along with extra network examples and environment implementations.
+
 ### A Note on SB3 Integration
 
 SB3 provides a flexible framework for implementing custom policy networks with standard RL algorithms, such as PPO and DQN.
@@ -845,7 +848,7 @@ We will not provide the full implementation of the environment here, but the key
 1\. The action and observation space. These are defined as fixed-size spaces, with the observation space being a dictionary containing the node features, edge features, and adjacency matrix. This will be the input to the `MatrixObservationToGraph` features extractor that we defined earlier.
 {% highlight python %}
 
-		self.action_space = gym.spaces.Discrete(self.max_nodes)
+        self.action_space = gym.spaces.Discrete(self.max_nodes)
         self.observation_space = gym.spaces.Dict(
             {
                 # node features: is node in mvc, node weight
@@ -897,7 +900,7 @@ We will not provide the full implementation of the environment here, but the key
 3\. The observation function. This function will take the current state of the environment and return the node feature matrix and edge feature matrix as defined, including any padding.
 {% highlight python %}
 
-	def _get_observation(self):
+    def _get_observation(self):
         node_features = np.zeros((self.max_nodes, 2), dtype=np.float32)
         node_features[: self.graph.num_nodes, 0] = self.in_mvc[: self.graph.num_nodes]
         node_features[: self.graph.num_nodes, 1] = self.graph.x.numpy()
@@ -920,7 +923,7 @@ We will not provide the full implementation of the environment here, but the key
 4\. The action masks. Here, the environment will indicate which actions (nodes) are valid at each step, i.e., nodes that have not already been selected.
 {% highlight python %}
 
-	def action_masks(self):
+    def action_masks(self):
         return (self.in_mvc == 0) & (np.arange(self.max_nodes) < self.graph.num_nodes)
 
 {% endhighlight %}
