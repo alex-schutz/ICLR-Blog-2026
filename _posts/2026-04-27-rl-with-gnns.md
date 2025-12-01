@@ -242,6 +242,8 @@ With this graph representation of the environment, different rotations or symmet
 
 {% include figure.liquid path="assets/img/2026-04-27-rl-with-gnns/tictactoe.svg" class="img-fluid" alt="The game of tic-tac-toe is represented as a graph, with 9 nodes and edges connecting positions in the same horizontal, vertical, or diagonal row. An X, O or - represents the current state of each node." caption="The state in a tic-tac-toe game can be represented as a graph, collapsing equivalent states." %}
 
+Note that the tic-tac-toe example presented here is a regular graph (i.e. a grid). However, GNNs can handle arbitrary graph structures, allowing us to represent more complex environments. Topologies for many graph problems do not exhibit regular structure, so they cannot be easily represented using traditional CNNs or MLPs.
+
 Another example where GNNs can be useful is in multi-agent collaboration tasks.
 In multi-agent systems, agents often need to communicate and coordinate with each other to achieve a common goal.
 In many traditional multi-agent RL settings, it is common to assume a fixed number of agent interactions, in order to maintain a fixed observation and action space.
