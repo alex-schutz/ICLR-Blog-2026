@@ -374,8 +374,8 @@ The MVC problem is defined on an undirected graph $$G = (V, E)$$ with node weigh
 The goal is to find a subset of nodes $$S \subseteq V$$ such that every edge $$ (u, v) \in E $$ has at least one endpoint in $$ S $$, while minimising the total weight of the selected nodes $$ \sum_{v \in S} w(v) $$.
 We will formulate this as a sequential decision-making problem, where at each step, the agent selects a node to add to the cover set until all edges are covered.
 
-<!-- TODO: add anonymous repo link -->
-Full code can be found in the [accompanying GitHub repository](), along with extra network examples and environment implementations.
+<!-- TODO: change to real repo -->
+Full code can be found in the [accompanying GitHub repository](https://anonymous.4open.science/r/RL-with-GNNs-7B7E), along with extra network examples and environment implementations.
 
 ### A Note on SB3 Integration
 
@@ -930,8 +930,8 @@ We will not provide the full implementation of the environment here, but the key
 
 {% endhighlight %}
 
-<!-- TODO: add anonymous repo link -->
-Full code for the environment can be found in the [accompanying GitHub repository]().
+<!-- TODO: change to real repo -->
+Full code for the environment can be found in the [accompanying GitHub repository](https://anonymous.4open.science/r/RL-with-GNNs-7B7E).
 
 ### Training the Policy
 
