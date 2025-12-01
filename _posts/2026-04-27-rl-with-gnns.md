@@ -42,6 +42,7 @@ toc:
       - name: Neighbours as Actions
       - name: Nodes as Actions
       - name: Edges as Actions
+  - name: Implementation Example
   - name: Future Avenues
   - name: Conclusion
 
@@ -349,6 +350,476 @@ There are two main ways to obtain edge embeddings from a GNN:
 
 Some works have explored edge-centric GNN architectures which directly produce edge embeddings, such as <d-cite key="zhaoLearningPrecodingPolicy2022a"></d-cite>, <d-cite key="yuLearningCountIsomorphisms2023"></d-cite> and <d-cite key="pengLearningResourceAllocation2024"></d-cite>, but to the best of our knowledge, this approach has not yet been applied in RL settings.
 
+## Implementation Example
+
+We will illustrate how to implement a simple GNN-based policy network using PyTorch Geometric <d-cite key="fey2019fast"></d-cite>.
+This will be trained using Proximal Policy Optimisation (PPO) <d-cite key="schulman2017proximalpolicyoptimizationalgorithms"></d-cite> on a weighted minimum vertex cover (MVC) problem.
+We will use Stable Baselines3 (SB3) <d-cite key="raffin2021stable"></d-cite> for the RL training loop.
+
+The MVC problem is defined on an undirected graph $$G = (V, E)$$ with node weights $$w: V \rightarrow \mathbb{R}^+$$.
+The goal is to find a subset of nodes $$S \subseteq V$$ such that every edge $$ (u, v) \in E $$ has at least one endpoint in $$ S $$, while minimising the total weight of the selected nodes $$ \sum_{v \in S} w(v) $$.
+We will formulate this as a sequential decision-making problem, where at each step, the agent selects a node to add to the cover set until all edges are covered.
+
+### A Note on SB3 Integration
+
+SB3 provides a flexible framework for implementing custom policy networks with standard RL algorithms, such as PPO and DQN.
+SB3 assumes an environment that follows the OpenAI Gym interface <d-cite key="brockman2016openai"></d-cite>, which requires defining the observation and action spaces, as well as the step and reset functions.
+While Gymnasium <d-cite key="towers2024gymnasium"></d-cite> supports graph-structured or sequence-structured observations, SB3 does not natively support these types of observations, and instead requires both the observation space and action space to have pre-defined fixed dimensions.
+
+In order to work around this limitation, we will require that our environments and policies use fixed-size graphs of size `max_nodes`, padded as necessary.
+This restriction allows us to use SB3's existing functionality while still leveraging the benefits of GNNs for processing graph-structured data.
+While the padding introduces some overhead, the padded graphs in matrix form will immediately be transformed back into sparse graph representations to be processed by the GNN.
+The `max_nodes` parameter should be chosen based on the expected size of the graphs in the environment.
+However, this parameter does not inherently impose any architectural constraints on the GNN, which means it can be **changed at test time** to allow for testing on larger graphs than seen during training.
+
+### The Actor Critic Architecture
+
+We will base our implementation on the actor-critic architecture provided by SB3.
+As a base class, we will use `MaskableActorCriticPolicy` from the `sb3_contrib` package, which allows us to apply action masks to the action distribution.
+This is useful in our environment, as not all nodes will be valid actions at each step (i.e., nodes that have already been selected cannot be selected again).
+
+The key components of the architecture are:
+1. **Features extractor**: This is typically a network that processes the raw observations from the environment into a latent representation, and is shared by both the actor and critic networks. In a GNN-based architecture, this could be an encoder that maps different types of node and edge features into a common feature space. In our example, this will be a simple transformation from the matrix representation of the graph to a PyTorch Geometric `Data` object.
+2. **Network architecture**: This network defines the main processing of the graph-structured data, which here will be shared by both the actor and critic networks. This will be a GNN that processes the graph and produces node embeddings and a graph-level embedding.
+3. **Policy and value heads**: These are the final layers that produce the action distribution and value estimates, respectively. In our case, the policy head will use a proto-action approach to select nodes, while the value head will use the graph-level embedding to estimate the value of the current state.
+
+
+### Features Extractor
+
+First, we will define a simple feature extractor that converts the matrix representation of the graph into a PyTorch Geometric `Data` object.
+We will assume that the environment implements observations in the form of a dictionary, where the key `node_features` maps to a matrix of shape `(max_nodes, node_dim)`, the key `edge_features` maps to a matrix of shape `(max_nodes, max_nodes, node_dim)`, and the key `adjacency_matrix` maps to a binary adjacency matrix of shape `(max_nodes, max_nodes)`.
+Based on these matrix representations, we will create the corresponding `Data` object, where we remove any padding from the matrices by assuming that any node with zero edges is padding.
+
+{% highlight python %}
+
+from gymnasium import spaces
+
+import torch as th
+import torch.nn as nn
+from torch.nn import functional as F
+from torch_geometric.data import Batch
+from torch_geometric.utils import to_dense_batch
+from torch_geometric.nn import global_max_pool, global_mean_pool, global_add_pool
+
+from sb3_contrib.common.maskable.policies import MaskableActorCriticPolicy
+from stable_baselines3.common.torch_layers import BaseFeaturesExtractor
+
+from typing import Callable, Any
+
+def matrix_features_to_batch(
+    node_features: th.Tensor,
+    edge_features: th.Tensor,
+    adj_matrix: th.Tensor,
+) -> Batch:
+    """Convert the matrix features to a PyTorch Geometric Batch object.
+
+    Args:
+        node_features (th.Tensor): b x n x f_n matrix of node features
+        edge_features (th.Tensor): b x n x n x f_e matrix of edge features
+        adj_matrix (th.Tensor): b x n x n binary adjacency matrix
+
+    Returns:
+        Batch: PyTorch Geometric Batch object
+    """
+
+    data_list = []
+    for b in range(node_features.size(0)):
+        edge_index = th.nonzero(adj_matrix[b], as_tuple=False).t()
+        edge_attr = edge_features[b][edge_index[0], edge_index[1]]
+        has_edge = (adj_matrix[b].sum(dim=0) > 0) | (adj_matrix[b].sum(dim=1) > 0)
+        node_features_b = node_features[b][has_edge]
+        data = Data(
+            x=node_features_b,
+            edge_index=edge_index,
+            edge_attr=edge_attr,
+        )
+        data_list.append(data)
+    return Batch.from_data_list(data_list)
+
+class MatrixObservationToGraph(BaseFeaturesExtractor):
+    """
+    Converts matrix-based observations to graph Batch objects.
+
+    Args:
+        observation_space (spaces.Dict): The observation space.
+    """
+
+    def __init__(
+        self,
+        observation_space: spaces.Dict,
+    ) -> None:
+
+        features_dim = 1  # unused
+        super().__init__(observation_space, features_dim=features_dim)
+
+    def forward(self, observations) -> Batch:
+        """Convert the observations to a graph Batch object."""
+        node_features = observations["node_features"]
+        edge_features = observations["edge_features"]
+        adj_matrix = observations["adjacency_matrix"]
+
+        batch = matrix_features_to_batch(node_features, edge_features, adj_matrix)
+        return batch
+
+{% endhighlight %}
+
+
+### Defining the GNN
+
+Now we will define a simple GNN architecture using PyTorch Geometric.
+Let's suppose that each node has a set of initial features, represented as a feature vector of dimension $$d_{in}$$.
+In our GNN, we will transform these into an embedding of dimension $$d$$. 
+We will define the number of message-passing layers $$L$$ in the GNN.
+We will use a simple Graph Convolutional Network (GCN) architecture for this example.
+
+{% highlight python %}
+
+import torch.nn as nn
+import torch.nn.functional as F
+from torch_geometric.nn import GCNConv
+
+class GCN(nn.Module):
+    def __init__(self, in_dim, embed_dim, num_layers=2, **kwargs):
+        super().__init__()
+        self.conv1 = GCNConv(in_dim, embed_dim)
+        self.layers = nn.ModuleList()
+        for _ in range(num_layers - 1):
+            self.layers.append(GCNConv(embed_dim, embed_dim))
+
+    def forward(self, node_fts, edge_index, **kwargs):
+        x = self.conv1(node_fts, edge_index)
+        x = F.relu(x)
+        for layer in self.layers:
+            x = layer(x, edge_index)
+            x = F.relu(x)
+        return x
+
+{% endhighlight %}
+
+
+### Defining the Processor Network
+
+With the GNN defined, we will now create a processor network that uses the GNN to produce both node embeddings and a graph-level embedding.
+These will be passed to the downstream actor and critic networks respectively.
+The actor network will use both the node embeddings and graph embedding to produce an action distribution, while the critic network will use only the graph embedding to produce a value estimate.
+
+{% highlight python %}
+
+class GraphActorCriticProcessor(nn.Module):
+    """
+    Custom network for policy and value function.
+    It receives as input the features extracted by the features extractor.
+    It outputs a processed graph batch for the actor and a graph embedding for the critic.
+
+    Args:
+        node_dim (int): Dimension of the node feature space.
+        edge_dim (int): Dimension of the edge feature space.
+        embed_dim (int): Dimension of the graph embedding space.
+        pooling_type (str): Pooling type to use for graph embedding computation
+            (options: "max", "mean", "sum")
+        network_kwargs (dict, optional): Additional arguments to pass to the graph network.
+    """
+
+    def __init__(
+        self,
+        node_dim: int,
+        edge_dim: int,
+        embed_dim: int = 64,
+        pooling_type: str = "max",
+        network_kwargs: dict = None,
+        **kwargs,
+    ):
+        if pooling_type not in ["max", "mean", "sum"]:
+            raise ValueError(f"Unknown pooling type {pooling_type}")
+
+        super().__init__()
+        # Save output dimensions
+        # This will be used by the MaskableActorCriticPolicy to create
+        # the value network (the actor network will be overriden)
+        self.latent_dim_vf = embed_dim
+        self.latent_dim_pi = 0  # unused
+
+        self.embed_dim = embed_dim
+        self.pooling_type = pooling_type
+
+        if network_kwargs is None:
+            network_kwargs = {}
+
+        processor_class = get_network_class(network_kwargs["network"])
+
+        # Create the graph processor
+        self.processor = processor_class(
+            in_channels=node_dim,
+            out_channels=embed_dim,
+            edge_dim=edge_dim,
+            **network_kwargs,
+        )
+
+    def _process_graph(self, batch: Batch) -> tuple[th.Tensor, th.Tensor]:
+        """Process the graph with the graph network"""
+
+        # Process the graph with the graph network
+        node_embedding = self.processor(
+            node_fts=batch.x,
+            edge_index=batch.edge_index,
+            edge_attr=batch.edge_attr,
+            batch=batch.batch,
+        )
+
+        # Compute the graph embedding via pooling
+        if self.pooling_type == "max":
+            graph_embedding = global_max_pool(node_embedding, batch.batch)
+        elif self.pooling_type == "mean":
+            graph_embedding = global_mean_pool(node_embedding, batch.batch)
+        elif self.pooling_type == "sum":
+            graph_embedding = global_add_pool(node_embedding, batch.batch)
+
+        # Return node and graph embeddings
+        return node_embedding, graph_embedding
+
+    def forward(self, batch: Batch) -> tuple[Batch, th.Tensor]:
+        """
+        Forward pass of the graph processor.
+
+        Args:
+            batch (Batch): A batch of graph data.
+        Returns:
+            processed_batch (Batch): The processed batch with updated features, to be passed to the downstream actor network.
+            graph_embedding (th.Tensor): The graph embedding tensor, to be passed to the downstream critic network.
+        """
+        # Process the graph
+        node_embedding, graph_embedding = self._process_graph(batch)
+
+        # Turn the processed embeddings back into a Batch object
+        processed_batch = Batch(
+            x=node_embedding,
+            edge_index=batch.edge_index,
+            graph_attr=graph_embedding,  # store graph embedding in graph_attr
+            batch=batch.batch,
+        )
+
+        return processed_batch, graph_embedding
+
+    def forward_critic(self, x: Batch) -> th.Tensor:
+        """Forward pass of the critic network."""
+        return self.forward(x)[1]
+
+    def forward_actor(self, x: Batch) -> Batch:
+        """Forward pass of the actor network."""
+        return self.forward(x)[0]
+
+{% endhighlight %}
+
+### Defining the Actor Network
+
+Next, we will define the policy network that uses the GNN to produce action probabilities.
+We will use the proto-action approach, where the GNN produces node embeddings, and we create a proto-action from the pooled node embeddings indicating the best action to take, then use a similarity function to rank the available actions.
+
+{% highlight python %}
+
+class ProtoActionNetwork(nn.Module):
+    """
+    Action network that predicts a proto-action from the graph embedding and
+    uses similarity-based matching to select a node.
+
+    Args:
+        embed_dim (int): Dimension of the embedding space.
+        max_nodes (int): Maximum number of nodes in the graph.
+        distance_metric (str): Distance metric to use for similarity computation
+            (options: "euclidean", "cosine").
+        action_predictor_layers (int): Number of layers in the action predictor network.
+        temp (float): Temperature parameter for the softmax.
+    """
+
+    def __init__(
+        self,
+        embed_dim: int,
+        max_nodes: int,
+        distance_metric: str = "euclidean",
+        action_predictor_layers: int = 2,
+        temp: float = 1.0,
+    ):
+        if distance_metric not in ["euclidean", "cosine"]:
+            raise ValueError(f"Unknown distance metric {distance_metric}")
+
+        super().__init__()
+        self.embed_dim = embed_dim
+        self.max_nodes = max_nodes
+        self.distance_metric = distance_metric
+        self.softmax_temp = nn.Parameter(th.tensor(temp), requires_grad=True)
+
+        # Define the action predictor network
+        # Input will be the graph embedding, output will be the proto-action
+        self.action_predictor = nn.Sequential(
+            *(
+                [nn.Linear(self.embed_dim, self.embed_dim)]
+                + [nn.ReLU(), nn.Linear(self.embed_dim, self.embed_dim)]
+                * (action_predictor_layers - 1)
+            )
+        )
+
+    def compute_embedding_similarities(self, embedded_acts, proto_action):
+        """Compute similarities between the embedded actions and the proto-action."""
+
+        if self.distance_metric == "euclidean":
+            similarities = -th.cdist(embedded_acts, proto_action, p=2).squeeze(-1)
+
+        elif self.distance_metric == "cosine":
+            similarities = F.cosine_similarity(embedded_acts, proto_action, dim=-1)
+        else:
+            raise ValueError(f"unknown distance metric {self.distance_metric}")
+
+        return similarities
+
+    def forward(self, batch: Batch) -> th.Tensor:
+        """Forward pass of the action network.
+        This method uses the graph embedding to create a proto-action by passing it through an MLP.
+        Action logits are then computed as similarities between the proto-action and the node embeddings.
+
+        Args:
+            batch (Batch): A batch of graph data. Required attributes are:
+                - x: Node embeddings (num_nodes, embed_dim)
+                - graph_attr: Graph embeddings (batch_size, embed_dim)
+                - batch: Batch vector mapping each node to its respective graph in the batch (num_nodes,)
+
+        Returns:
+            th.Tensor: (b, n) matrix of similarities between the graph embedding and the node embeddings,
+                where b is the batch size and n is the number of nodes.
+        """
+
+        node_embedding = batch.x
+        graph_embedding = batch.graph_attr
+
+        # Create the proto-action from the graph embedding
+        proto_action = self.action_predictor(graph_embedding)
+
+        # Compute similarities between the graph embedding and the node embeddings per batch
+        similarities = th.zeros_like(batch.batch, dtype=th.float32)
+        unique_batches = batch.batch.unique()
+        for batch_id in unique_batches:
+            batch_mask = batch.batch == batch_id
+            batch_embeddings = node_embedding[batch_mask]
+            batch_target = proto_action[batch_id].unsqueeze(0)  # Target for this batch
+            batch_similarities = self.compute_embedding_similarities(
+                batch_embeddings, batch_target
+            )
+            similarities[batch_mask] = batch_similarities
+
+        # Scale similarities by temperature
+        similarities = similarities / self.softmax_temp
+
+        # Reshape similarities along the batch dimension
+        similarities = to_dense_batch(
+            similarities.unsqueeze(-1),
+            batch.batch,
+            fill_value=-1e9,  # large negative value for padding
+            max_num_nodes=self.max_nodes,
+        )[0]
+
+        return similarities
+
+{% endhighlight %}
+
+### Putting It All Together
+
+Finally, we will create the complete GNN-based policy by combining the feature extractor, processor, and actor/critic networks.
+Note that we have not explicitly defined the critic network. 
+This is because the critic MLP is automatically created by the `MaskableGraphActorCriticPolicy` base class, according to the `latent_dim_vf` attribute defined in the processor network.
+This will map the graph embedding to a scalar value estimate, and the depth can be configured via the `net_arch` parameter.
+
+{% highlight python %}
+
+class MaskableGraphActorCriticPolicy(MaskableActorCriticPolicy):
+    """
+    Custom Actor-Critic Policy with a custom feature extractor and network architecture.
+
+    Args:
+        observation_space (spaces.Dict): The observation space.
+        action_space (spaces.Discrete): The action space.
+        lr_schedule (Callable[[float], float]): Learning rate schedule.
+        node_dim (int): Dimension of the node feature space.
+        edge_dim (int): Dimension of the edge feature space.
+        embed_dim (int): Dimension of the embedding space.
+        pooling_type (str): Pooling type to use for graph embedding computation
+            (options: "max", "mean", "sum").
+        distance_metric (str): Distance metric to use for similarity computation
+            (options: "euclidean", "cosine").
+        temp (float): Temperature parameter for the softmax.
+        network_kwargs (dict, optional): Additional arguments to pass to the graph network.
+        *args: Additional arguments passed to the base class.
+        **kwargs: Additional keyword arguments passed to the base class.
+    """
+
+    def __init__(
+        self,
+        observation_space: spaces.Dict,
+        action_space: spaces.Discrete,
+        lr_schedule: Callable[[float], float],
+        node_dim: int,
+        edge_dim: int,
+        embed_dim: int = 64,
+        pooling_type: str = "max",
+        distance_metric: str = "euclidean",
+        temp: float = 1.0,
+        network_kwargs: dict = None,
+        *args,
+        **kwargs,
+    ):
+        self.node_dim = node_dim
+        self.edge_dim = edge_dim
+        self.embed_dim = embed_dim
+        self.pooling_type = pooling_type
+        self.distance_metric = distance_metric
+        self.temp = temp
+        self.network_kwargs = network_kwargs
+
+        kwargs.setdefault("features_extractor_class", MatrixObservationToGraph)
+
+        super().__init__(
+            observation_space,
+            action_space,
+            lr_schedule,
+            # Pass remaining arguments to base class
+            *args,
+            **kwargs,
+        )
+
+        # override default SB3 action net to use proto-action method
+        self.action_net = ProtoActionNetwork(
+            embed_dim=self.embed_dim,
+            max_nodes=self.action_space.n,
+            distance_metric=self.distance_metric,
+            temp=self.temp,
+        )
+
+    # Override the mlp extractor to use our graph processor
+    def _build_mlp_extractor(self) -> None:
+        self.mlp_extractor = GraphActorCriticProcessor(
+            node_dim=self.node_dim,
+            edge_dim=self.edge_dim,
+            embed_dim=self.embed_dim,
+            pooling_type=self.pooling_type,
+            network_kwargs=self.network_kwargs,
+        )
+
+    # Override to save custom parameters
+    def _get_constructor_parameters(self) -> dict[str, Any]:
+        data = super()._get_constructor_parameters()
+
+        data.update(
+            dict(
+                node_dim=self.node_dim,
+                edge_dim=self.edge_dim,
+                embed_dim=self.embed_dim,
+                pooling_type=self.pooling_type,
+                distance_metric=self.distance_metric,
+                temp=self.temp,
+                network_kwargs=self.network_kwargs,
+            )
+        )
+        return data
+
+{% endhighlight %}
 
 ## Future Avenues
 
