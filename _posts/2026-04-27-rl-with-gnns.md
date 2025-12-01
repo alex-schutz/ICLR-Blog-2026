@@ -111,7 +111,7 @@ However, these methods often fail to capture complex relationships in the graph.
 Deep graph embedding methods aim to learn the representation by training end-to-end with task-specific supervision signals.
 Graph Neural Networks (GNNs) are a class of deep learning models designed to operate on graph-structured data.
 
-{% include figure.liquid path="assets/img/2026-04-27-rl-with-gnns/karate_graph.svg" class="img-fluid" alt="" caption="TODO: Replace this image with own version or get permission from the copyright holder https://arxiv.org/abs/1403.6652." %}
+{% include figure.liquid path="assets/img/2026-04-27-rl-with-gnns/graph_embedding.svg" class="img-fluid" alt="On the left is an input graph with 8 nodes. On the right is a plot demonstrating the 2-D embedding of the nodes in vector space." caption="A GNN can learn an embedding of nodes in vector space." %}
 
 GNNs rely on the neighbourhood aggregation principle: the features of a node are learned by aggregating the features of its neighbours using a learnable parameterisation and an activation function.
 Typically, GNNs are parameter sharing architectures, where the same set of parameters is used across all nodes and edges in the graph, similarly to the convolution operation in CNNs.
