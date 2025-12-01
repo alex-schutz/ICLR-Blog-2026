@@ -123,7 +123,7 @@ Here, $$M^{(l)}$$ is the message function that computes messages from neighbouri
 Typically, $$M^{(l)}$$ and $$U^{(l)}$$ are parameterised by neural networks such as MLPs.
 The sum operation can be replaced with other permutation-invariant operations such as mean or max aggregation.
 
-> add figure of message passing step (darvariu et al 2024)
+{% include figure.liquid path="assets/img/2026-04-27-rl-with-gnns/aggregation-illustration.svg" class="img-fluid" alt="A diagram showing the message passing step in a GNN. A node is highlighted in red, with an unknown node embedding vector. Each of its neighbours' node embeddings are shown being passed to the highlighted node with arrows." caption="In a GNN, the embedding of a node is updated by aggregating messages from its neighbours. Reproduced with permission from <d-cite key='darvariu2024graph'></d-cite>." %}
 
 By applying several layers of parameterised message functions and update functions, each node obtains a final embedding $$\mathbf{z}_{v_i} = \mathbf{h}_{v_i}^{(L)}$$.
 This embedding captures information from its $$L$$-hop neighbourhood.
