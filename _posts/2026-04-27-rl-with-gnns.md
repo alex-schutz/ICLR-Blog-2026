@@ -938,7 +938,7 @@ Full code for the environment can be found in the [accompanying GitHub repositor
 With the environment and policy defined, we can now train the GNN-based policy using SB3's PPO implementation.
 We will train on randomly generated graphs of size 5, 10 and 15 nodes.
 We validate the policy on graphs of size 15 at regular intervals during training.
-Here we train a 2-layer GAT with embedding dimension 128 on graphs with 100000 PPO steps.
+Here we train a 2-layer GAT with embedding dimension 128 on graphs with 100k PPO steps.
 For comparison, we also train GCN and GraphSAGE architectures with the same parameters.
 
 <div class="c-page">
