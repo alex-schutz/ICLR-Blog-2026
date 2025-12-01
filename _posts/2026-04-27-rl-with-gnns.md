@@ -94,6 +94,8 @@ Value-based methods, such as Q-learning and Deep Q-Networks (DQN), focus on esti
 Given the Q-function, a policy can be derived by selecting the action that maximises the value.
 Policy-based methods, such as Policy Gradient and Proximal Policy Optimization (PPO), directly parameterise the policy $$\pi_{\theta}(a | s)$$ and optimise the parameters $$\theta$$ to maximise the expected return.
 Both approaches can be implemented using deep neural networks as function approximators, in our case, GNNs.
+An RL policy can also be trained from expert demonstrations, using imitation learning. 
+In this setting, the agent learns to mimic the behaviour of an expert by aligning its action predictions with those from state-action pairs collected from expert trajectories.
 
 ### Graph Neural Networks
 
