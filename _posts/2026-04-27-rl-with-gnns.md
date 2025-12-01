@@ -63,8 +63,7 @@ toc:
 
 ## Introduction
 
-
-> add picture of GNN in RL setting. use different action spaces as examples. two graphs going into GNN, different action space outputs.
+{% include figure.liquid path="assets/img/2026-04-27-rl-with-gnns/gnn_main.svg" class="img-fluid" alt="A graph neural network processes observations in graph format and outputs to an action space with dimension depending on the input graph." %}
 
 Graph Neural Networks (GNNs) have gained significant attention in recent years due to their ability to model relational data and capture complex interactions between entities.
 To date, most applications of GNNs have been in paradigms such as supervised and unsupervised learning, used for tasks such as node classification, link prediction, and graph classification.
