@@ -208,7 +208,7 @@ This means that the number of possible actions an agent can take is predetermine
 This can be limiting in environments where the action space is dynamic or variable, such as in navigation tasks or multi-agent systems.
 In such cases, existing approaches often resort to padding the action space to a fixed size or using hierarchical action representations, which can lead to inefficiencies and suboptimal policies.
 
-> add figure showing fixed action space vs variable action space
+{% include figure.liquid path="assets/img/2026-04-27-rl-with-gnns/fixed_vs_variable.svg" class="img-fluid" alt="(Left) An agent in a room with 6 numbered doors. Each number fits in a box representing an action space with dimension 6. (Right) An agent in a room with 7 doors. The first 6 doors are numbered, and the seventh is marked with a red question mark. The 6 numbers fit in boxes representing the action space with dimension 6, but the 7th is marked with red dashed lines on the edge of the boxes." caption="A fixed action space does not accommodate flexibility in the environment." %}
 
 For example, suppose an agent is navigating through a building with rooms connected by doors.
 If we define the action space to be the set of doors in the current room, the number of possible actions can vary depending on the room.
