@@ -43,6 +43,17 @@ toc:
       - name: Nodes as Actions
       - name: Edges as Actions
   - name: Implementation Example
+    subsections:
+      - name: A Note on SB3 Integration
+      - name: The Actor Critic Architecture
+      - name: Features Extractor
+      - name: Defining the GNN
+      - name: Defining the Processor Network
+      - name: Defining the Actor Network
+      - name: Putting Together the Complete Policy
+      - name: Defining the Environment
+      - name: Training the Policy
+      - name: Changing Graph Size at Test Time
   - name: Future Avenues
   - name: Conclusion
 
