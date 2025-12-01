@@ -720,7 +720,7 @@ class ProtoActionNetwork(nn.Module):
 
 {% endhighlight %}
 
-### Putting It All Together
+### Putting Together the Complete Policy
 
 Finally, we will create the complete GNN-based policy by combining the feature extractor, processor, and actor/critic networks.
 Note that we have not explicitly defined the critic network. 
@@ -820,6 +820,126 @@ class MaskableGraphActorCriticPolicy(MaskableActorCriticPolicy):
         return data
 
 {% endhighlight %}
+
+
+### Defining the Environment
+
+With the policy defined, we will now create a simple Gym environment for the weighted minimum vertex cover problem.
+Here, we will use a node feature vector consisting of the node weight and a binary indicator of whether the node has been selected.
+We will also define an edge feature vector consisting of a binary indicator of whether the edge is covered in the current solution.
+We will use a simple reward structure, where the agent receives a negative reward equal to the weight of the selected node at each step, and the episode ends when all edges are covered.
+
+We will not provide the full implementation of the environment here, but the key components are:
+
+1\. The action and observation space. These are defined as fixed-size spaces, with the observation space being a dictionary containing the node features, edge features, and adjacency matrix. This will be the input to the `MatrixObservationToGraph` features extractor that we defined earlier.
+{% highlight python %}
+
+		self.action_space = gym.spaces.Discrete(self.max_nodes)
+        self.observation_space = gym.spaces.Dict(
+            {
+                # node features: is node in mvc, node weight
+                "node_features": gym.spaces.Box(
+                    low=0,
+                    high=1,
+                    shape=(self.max_nodes, 2),
+                    dtype=np.float32,
+                ),
+                # edge features: is edge covered in mvc
+                "edge_features": gym.spaces.Box(
+                    low=0,
+                    high=1,
+                    shape=(self.max_nodes, self.max_nodes, 1),
+                    dtype=np.float32,
+                ),
+                "adjacency_matrix": gym.spaces.Box(
+                    low=0,
+                    high=1,
+                    shape=(self.max_nodes, self.max_nodes),
+                    dtype=np.float32,
+                ),
+            }
+        )
+
+{% endhighlight %}
+2\. The core logic. The step function will take an action (node index), and add the node to the vertex cover set if it has not already been selected. The covered edges will be updated accordingly, and the reward will be calculated based on the node weight.
+{% highlight python %}
+
+    def step(self, action):
+        if self.in_mvc[action] == 1:
+            reward = -1.0  # penalty for re-adding a node
+            return self._get_observation(), reward, False, False, {}
+
+        self.in_mvc[action] = 1
+
+        # Update covered edges
+        neighbours = self.graph.edge_index[1][self.graph.edge_index[0] == action]
+        for neighbour in neighbours.numpy():
+            self.covered_edges[action, neighbour] = 1.0
+            self.covered_edges[neighbour, action] = 1.0
+
+        done = self._all_edges_covered()
+        reward = -self.graph.x[action].item()  # reward is node weight
+
+        return self._get_observation(), reward, done, False, {}
+
+{% endhighlight %}
+3\. The observation function. This function will take the current state of the environment and return the node feature matrix and edge feature matrix as defined, including any padding.
+{% highlight python %}
+
+	def _get_observation(self):
+        node_features = np.zeros((self.max_nodes, 2), dtype=np.float32)
+        node_features[: self.graph.num_nodes, 0] = self.in_mvc[: self.graph.num_nodes]
+        node_features[: self.graph.num_nodes, 1] = self.graph.x.numpy()
+
+        edge_features = np.zeros((self.max_nodes, self.max_nodes, 1), dtype=np.float32)
+        edge_features[:, :, 0] = self.covered_edges
+
+        adjacency_matrix = (
+            to_dense_adj(self.graph.edge_index, max_num_nodes=self.max_nodes)
+            .squeeze(0)
+            .numpy()
+        )
+
+        return {
+            "node_features": node_features,
+            "edge_features": edge_features,
+            "adjacency_matrix": adjacency_matrix,
+        }
+{% endhighlight %}
+4\. The action masks. Here, the environment will indicate which actions (nodes) are valid at each step, i.e., nodes that have not already been selected.
+{% highlight python %}
+
+	def action_masks(self):
+        return (self.in_mvc == 0) & (np.arange(self.max_nodes) < self.graph.num_nodes)
+
+{% endhighlight %}
+
+<!-- TODO: add anonymous repo link -->
+Full code for the environment can be found in the [accompanying GitHub repository]().
+
+### Training the Policy
+
+With the environment and policy defined, we can now train the GNN-based policy using SB3's PPO implementation.
+
+### Changing Graph Size at Test Time
+
+In order to test on graphs larger than `max_nodes`, we can simply create a new environment with a larger `max_nodes` parameter, and load the trained policy weights into a new policy instance with the same parameter.
+
+{% highlight python %}
+
+def change_obs_action_space(
+    policy: MaskableActorCriticPolicy,
+    env: VecEnv,
+) -> MaskableActorCriticPolicy:
+    constructor_args = policy._get_constructor_parameters()
+    constructor_args["observation_space"] = env.observation_space
+    constructor_args["action_space"] = env.action_space
+    new_policy = policy.__class__(**constructor_args)
+    new_policy.load_state_dict(policy.state_dict())
+    return new_policy
+
+{% endhighlight %}
+
 
 ## Future Avenues
 
