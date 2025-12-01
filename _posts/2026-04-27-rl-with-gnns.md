@@ -361,9 +361,9 @@ At this stage, modelling more complex action spaces, such as hybrids of fixed an
 
 The limitations of GNN architectures themselves can also limit their effectiveness in RL settings.
 At present, many GNNs operate best under the assumption of homophily: that connected nodes are more likely to share similar features or labels.
-GNNs have also been designed for heterophilous graphs, but these require a strict bipartite structure, limiting their applicability.
+GNNs have also been designed for heterogenous graphs, e.g. <d-cite key="wang2019heterogeneous"></d-cite>, but these require a strict bipartite structure, limiting their applicability.
 At present, even if an environment can be modelled as a graph, complex structures or interactions (such as distinct node types, or higher-order relationships) may create an environment that is not well-suited to existing GNN architectures.
-Furthermore, many GNNs can be prone to over-smoothing, where node embeddings become indistinguishable after multiple message-passing layers.
+Furthermore, many GNNs can be prone to over-smoothing, where node embeddings become indistinguishable after multiple message-passing layers <d-cite key="rusch2023survey"></d-cite>.
 This makes long-range dependencies difficult to capture, and can limit the effectiveness of GNNs in environments with large or complex graphs.
 
 Presently, there is a lack of standardised support for graph-based environments and GNN-based policies in popular RL libraries and frameworks.
