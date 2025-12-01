@@ -484,27 +484,27 @@ Now we will define a simple GNN architecture using PyTorch Geometric.
 Let's suppose that each node has a set of initial features, represented as a feature vector of dimension $$d_{in}$$.
 In our GNN, we will transform these into an embedding of dimension $$d$$. 
 We will define the number of message-passing layers $$L$$ in the GNN.
-We will use a simple Graph Convolutional Network (GCN) architecture for this example.
+We will use a GAT layer for this example, which processes both node and edge features.
 
 {% highlight python %}
 
 import torch.nn as nn
 import torch.nn.functional as F
-from torch_geometric.nn import GCNConv
+from torch_geometric.nn import GATv2Conv
 
-class GCN(nn.Module):
-    def __init__(self, in_dim, embed_dim, num_layers=2, **kwargs):
+class GAT(nn.Module):
+    def __init__(self, in_dim, embed_dim, edge_dim=None, num_layers=2, **kwargs):
         super().__init__()
-        self.conv1 = GCNConv(in_dim, embed_dim)
+        self.conv1 = GATv2Conv(in_dim, embed_dim, edge_dim=edge_dim)
         self.layers = nn.ModuleList()
         for _ in range(num_layers - 1):
-            self.layers.append(GCNConv(embed_dim, embed_dim))
+            self.layers.append(GATv2Conv(embed_dim, embed_dim, edge_dim=edge_dim))
 
-    def forward(self, node_fts, edge_index, **kwargs):
-        x = self.conv1(node_fts, edge_index)
+    def forward(self, node_fts, edge_index, edge_attr=None, **kwargs):
+        x = self.conv1(node_fts, edge_index, edge_attr=edge_attr)
         x = F.relu(x)
         for layer in self.layers:
-            x = layer(x, edge_index)
+            x = layer(x, edge_index, edge_attr=edge_attr)
             x = F.relu(x)
         return x
 
@@ -559,12 +559,10 @@ class GraphActorCriticProcessor(nn.Module):
         if network_kwargs is None:
             network_kwargs = {}
 
-        processor_class = get_network_class(network_kwargs["network"])
-
         # Create the graph processor
-        self.processor = processor_class(
-            in_channels=node_dim,
-            out_channels=embed_dim,
+        self.processor = GAT(
+            in_dim=node_dim,
+            embed_dim=embed_dim,
             edge_dim=edge_dim,
             **network_kwargs,
         )
