@@ -103,7 +103,7 @@ A graph $$G = (V, E)$$ consists of a set of nodes $$V$$ and a set of edges $$E \
 Nodes represent entities, while edges represent connections between them.
 For example, in a social network graph, nodes could represent individuals, and edges could represent friendships between them.
 In a graph, nodes and edges can have associated feature vectors $$\mathbf{x}_{v_i}$$ and $$\mathbf{x}_{e_{i,j}}$$.
-A graph can be represented using an adjacency matrix $$A \in \{0, 1\}^{|V| \times |V|}$$, where $$A_{i,j} = 1$$ if there is an edge from node $$v_i$$ to node $$v_j$$, and $$0$$ otherwise.
+A graph can be represented using an adjacency matrix $$adj \in \{0, 1\}^{|V| \times |V|}$$, where $$adj_{i,j} = 1$$ if there is an edge from node $$v_i$$ to node $$v_j$$, and $$0$$ otherwise.
 
 An embedding of a graph is a mapping from the graph structure and its features to a low-dimensional vector space.
 Using the embedding, we can perform various downstream tasks such as node classification, link prediction, and graph classification.
