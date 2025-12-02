@@ -452,7 +452,7 @@ This is useful in our environment, as not all nodes will be valid actions at eac
 
 The key components of the architecture are:
 1. **Features extractor**: This is typically a network that processes the raw observations from the environment into a latent representation, and is shared by both the actor and critic networks. In a GNN-based architecture, this could be an encoder that maps different types of node and edge features into a common feature space. In our example, this will be a simple transformation from the matrix representation of the graph to a PyTorch Geometric `Data` object.
-2. **Network architecture**: This network defines the main processing of the graph-structured data, which here will be shared by both the actor and critic networks. This will be a GNN that processes the graph and produces node embeddings and a graph-level embedding.
+2. **Processor**: This network defines the main processing of the graph-structured data, which here will be shared by both the actor and critic networks. This will be a GNN that processes the graph and produces node embeddings and a graph-level embedding.
 3. **Policy and value heads**: These are the final layers that produce the action distribution and value estimates, respectively. In our case, the policy head will use a proto-action approach to select nodes, while the value head will use the graph-level embedding to estimate the value of the current state.
 
 More detail on implementing custom policies in SB3 can be found in the [SB3 documentation](https://stable-baselines3.readthedocs.io/en/master/guide/custom_policy.html).
