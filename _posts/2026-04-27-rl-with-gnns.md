@@ -42,6 +42,7 @@ toc:
       - name: Neighbours as Actions
       - name: Nodes as Actions
       - name: Edges as Actions
+  - name: Invalid Action Handling
   - name: Implementation Example
     subsections:
       - name: A Note on SB3 Integration
@@ -375,6 +376,45 @@ There are two main ways to obtain edge embeddings from a GNN:
 2. Use a line graph transformation to convert edges into nodes, allowing the GNN to produce edge-level embeddings directly. This approach has been used in works where edge attributes are more important than nodes, such as <d-cite key="jiangCensNetConvolutionEdgeNode2019"></d-cite> and <d-cite key="caiLineGraphNeural2022"></d-cite>. However, the line graph transformation generally increases the size of the graph, and can lead to some duplication of information.
 
 Some works have explored edge-centric GNN architectures which directly produce edge embeddings, such as <d-cite key="zhaoLearningPrecodingPolicy2022a"></d-cite>, <d-cite key="yuLearningCountIsomorphisms2023"></d-cite> and <d-cite key="pengLearningResourceAllocation2024"></d-cite>, but to the best of our knowledge, this approach has not yet been applied in RL settings.
+
+## Invalid Action Handling
+
+In many RL environments, not all actions are valid in every state.
+For example, in a navigation task, an agent may not be able to move through walls or obstacles.
+When using a graph-based environment, handling of invalid actions becomes particularly important, as the flexible nature of the action space can lead to a large number of invalid actions in certain states.
+
+There are two main approaches to handling invalid actions in RL:
+1. **Action Masking**: In this approach, the policy network is modified to only output probabilities for valid actions. This can be done by applying a mask to the output of the policy network, setting the probabilities of invalid actions to zero and renormalising the remaining probabilities. This ensures that the agent only selects valid actions during training and evaluation.
+2. **Invalid Action Penalties**: In this approach, the agent is allowed to select any action, but receives a penalty in the reward signal if an invalid action is selected. This penalty can be a fixed negative reward or a function of the severity of the invalid action. The agent learns to avoid invalid actions through trial and error.
+
+Invalid action penalties are generally not preferred.
+The choice of penalty value requires reward engineering, which can be difficult and time-consuming.
+Furthermore, in graph-based environments, the set of invalid actions can be large and dynamic, making it challenging for the agent to learn to avoid them effectively.
+We will demonstrate that action masking is generally a more effective approach when using graph environments in RL settings.
+
+### Experiment
+
+We will run a simple experiment to compare the performance of action masking and invalid action penalties in a GNN-based RL environment.
+We will use a weighted minimum vertex cover (MVC) problem, where the agent must select nodes to cover all edges in the graph while minimising the total weight of the selected nodes.
+The full environment setup is described in the [Implementation Example](#implementation-example) section below.
+
+In this setting, invalid actions correspond to selecting nodes that have already been selected.
+In a given episode, the maximum number of steps that can be taken by only selecting valid actions is equal to the number of nodes in the graph.
+However, if invalid actions are allowed (and penalised), the agent may select the same node multiple times, leading to indefinite episode lengths.
+
+We will compare two agents: one using action masking to prevent invalid actions, and one using a fixed penalty of -1 for selecting an invalid action.
+The reward for selecting a valid node is equal to the negative weight of the node.
+For the agent using penalties, we set the maximum episode length to be the number of nodes in the graph, to prevent indefinite episodes.
+Both agents are trained using PPO with the same GNN architecture and hyperparameters.
+Training is performed on random graphs with 5, 10 and 15 nodes, and validation is performed on graphs with 15 nodes.
+
+<div class="c-page">
+  <iframe src="{{ 'assets/html/2026-04-27-rl-with-gnns/action_masking.html' | relative_url }}" frameborder='0' scrolling='no' height="500px" width="100%"></iframe>
+</div>
+
+From the results, we can clearly see that the agent using penalties instead of action masking fails to learn a good policy, whereas the action masking agent learns a policy quickly.
+Even though the graphs are quite small, the penalty-based agent struggles to learn to avoid invalid actions, leading to poor performance.
+Clearly, this is an important design decision which can have a significant impact on the performance of GNN-based RL agents.
 
 ## Implementation Example
 
