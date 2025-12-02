@@ -372,13 +372,16 @@ While this approach is straightforward and works with existing GNN architectures
 
 {% include figure.liquid path="assets/img/2026-04-27-rl-with-gnns/edges_action_space.svg" class="img-fluid" alt="Edge embeddings are created for each edge in a graph. These are passed to a scoring function in the form of an MLP. The scores can be used to create an action distribution over edges using softmax." caption="Using an embedding of the edges, a function can be applied to create an action distribution over edges in the graph." %}
 
-Given an edge embedding, edges could be selected in a similar manner to nodes, either through scoring or proto-action methods.
-However, most GNN architectures do not produce edge-level embeddings directly, instead prioritising node-level embeddings.
-There are two main ways to obtain edge embeddings from a GNN:
-1. Use the node embeddings to create edge embeddings by concatenating or summing the embeddings of the two nodes that form the edge. This is straightforward, but may not capture all the information about the edge itself, especially if the edge has attributes.
-2. Use a line graph transformation to convert edges into nodes, allowing the GNN to produce edge-level embeddings directly. This approach has been used in works where edge attributes are more important than nodes, such as <d-cite key="jiangCensNetConvolutionEdgeNode2019"></d-cite> and <d-cite key="caiLineGraphNeural2022"></d-cite>. However, the line graph transformation generally increases the size of the graph, and can lead to some duplication of information.
+Given an edge embedding, edges can be selected in a similar manner to nodes, either through scoring or proto-action methods.
 
-Some works have explored edge-centric GNN architectures which directly produce edge embeddings, such as <d-cite key="zhaoLearningPrecodingPolicy2022a"></d-cite>, <d-cite key="yuLearningCountIsomorphisms2023"></d-cite> and <d-cite key="pengLearningResourceAllocation2024"></d-cite>, but to the best of our knowledge, this approach has not yet been applied in RL settings.
+There are three main ways to obtain edge embeddings from a GNN:
+1. Directly compute edge embeddings using an edge-centric GNN architecture. This approach is less common, as most GNN architectures focus on node embeddings. However, some works have proposed edge-centric GNNs that can produce edge embeddings directly, such as <d-cite key="zhaoLearningPrecodingPolicy2022a"></d-cite>, <d-cite key="yuLearningCountIsomorphisms2023"></d-cite> and <d-cite key="pengLearningResourceAllocation2024"></d-cite>.
+2. Use the node embeddings to create edge embeddings by concatenating or summing the embeddings of the two nodes that form the edge. This is straightforward, but may not capture all the information about the edge itself, especially if the edge has attributes.
+3. Use a line graph transformation to convert edges into nodes, allowing the GNN to produce edge-level embeddings directly. This approach has been used in works where edge attributes are more important than nodes, such as <d-cite key="jiangCensNetConvolutionEdgeNode2019"></d-cite> and <d-cite key="caiLineGraphNeural2022"></d-cite>. However, the line graph transformation generally increases the size of the graph, and can lead to some duplication of information.
+
+
+#### Example
++ Zheng et al. <d-cite key="zheng2023road"></d-cite> address road planning in slums, where an agent must select edges to add to a road network to optimise connectivity, travel distance, and cost. A custom edge-centric GNN is used to produce edge embeddings, which are then passed through an edge-ranking MLP to generate a distribution over edge selections. The policy is trained using PPO, where the critic network is an MLP operating on the concatenation of pooled node and edge embeddings.
 
 ## Invalid Action Handling
 
