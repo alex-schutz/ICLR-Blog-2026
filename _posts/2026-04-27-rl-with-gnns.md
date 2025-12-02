@@ -346,6 +346,7 @@ Similarly to the neighbours-as-actions approach, the node embeddings produced by
 ##### Examples
 + Khalil et al. <d-cite key="Khalil2017LearningCO"></d-cite> approach combinatorial optimisation problems such as the travelling salesman problem (TSP) and minimum vertex cover (MVC) using Q-learning. At each step, a node is selected from the graph to be added to the solution set. The action-value estimate for each node $$v$$ in graph state $$G$$ is given by $$Q(G, v) = f([\mathbf{z}_G \| \mathbf{z}_v])$$, where $$\mathbf{z}_G$$ is the graph-level embedding obtained via pooling and $$\mathbf{z}_v$$ is the GNN embedding of node $$v$$. Here, $$f$$ is a 2-layer MLP.
 + Antonietti et al. <d-cite key="antonietti2025magnet"></d-cite> consider mesh agglomeration as a graph partitioning problem. At each step, a point is chosen to be switched from its current partition into the other. The model is implemented using four GraphSAGE layers, followed by two linear layers. The critic then uses attentional aggregation and two further linear layers to produce a value estimate, and the model is trained using A2C. Here, the authors use action masking to prevent previously selected nodes from being selected again.
++ Infantes et al. <d-cite key="infantes2024earth"></d-cite> address satellite observation scheduling using a GNN-based policy trained with PPO. In this case, the authors obtain the action logits from a concatenation of node embeddings from each layer of the GNN, passed through a linear layer to reduce them to dimension 1.
 
 #### Proto-Action
 
