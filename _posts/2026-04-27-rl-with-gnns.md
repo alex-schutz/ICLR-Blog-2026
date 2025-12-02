@@ -1,7 +1,7 @@
 ---
 layout: distill
 title: Reinforcement Learning using Graph Neural Networks
-description: Graph Neural Networks (GNNs) have been widely used in various supervised learning domains, known for their size invariance and ability to model relational data. Fewer works have explored their potential in Reinforcement Learning (RL). In this blog post, we discuss how GNNs can be effectively integrated into Deep RL frameworks, unlocking new capabilities for agents to reason with dynamic action spaces and achieve high-quality zero-shot size generalisation.
+description: Graph Neural Networks (GNNs) have been widely used in various supervised learning domains, known for their size invariance and ability to model relational data. Fewer works have explored their potential in Reinforcement Learning (RL). In this blog post, we discuss how GNNs can be effectively integrated into Deep RL frameworks, unlocking new capabilities for agents to reason with dynamic action spaces and unbounded input sizes.
 date: 2026-04-27
 future: true
 htmlwidgets: true
@@ -34,7 +34,7 @@ toc:
     subsections:
       - name: Permutation Sensitivity
       - name: Fixed Output Dimensions
-      - name: Bounded Size Generalisation
+      - name: Bounded Input Dimensions
   - name: Reinforcement Learning with Graph Neural Networks
   - name: Environments as Graphs
     subsections:
@@ -72,12 +72,14 @@ To date, most applications of GNNs have been in paradigms such as supervised and
 Deep reinforcement learning (RL) has also been an area of active research, with many successful applications in games, robotics, and control tasks.
 However, the potential of GNNs in RL remains relatively underexplored.
 Compared to traditional deep learning architectures such as convolutional neural networks (CNNs) and multi-layer perceptrons (MLPs), GNNs offer several advantages that enable novel capabilities in RL settings when used as a policy or value function approximator.
-These include out-of-distribution (OOD) size generalisation, permutation invariance, and the ability to handle variable action spaces.
+These include being agnostic to input size, permutation invariance, and the ability to handle variable action spaces.
 These properties have great value in applications such as multi-agent systems, navigation, combinatorial optimisation, and resource allocation.
 
 We hypothesise that the lack of uptake of GNNs in RL is due to unclear design patterns for integrating GNNs into RL frameworks, as well as a lack of implementation support in popular RL libraries.
 Thus, in this blog post, we aim to provide a comprehensive overview of GNNs in RL, focusing on the practical design aspects of using GNNs as policy or value function approximators.
-
+We discuss common approaches to representing environments as graphs, defining action spaces, and handling invalid actions.
+Furthermore, we include a detailed implementation example using Stable Baselines 3 (SB3) <d-cite key="raffinStableBaselines3Reliable2021"></d-cite>, a popular RL library in Python.
+We hope that this post will serve as a useful resource for researchers and practitioners interested in leveraging GNNs in RL settings.
 
 ## Preliminaries
 
@@ -232,20 +234,21 @@ This limitation has led to the popularity of grid-world environments, where the 
 Instead, by using GNNs, we can model the environment as a graph, where nodes represent rooms and edges represent doors.
 Using the neighbours of the current node as possible actions allows for a dynamic action space which can adapt to the environment's structure.
 
-### Bounded Size Generalisation
+### Bounded Input Dimensions
 
-Another limitation of traditional deep RL architectures is their inapplicability in environments of different sizes to the fixed input and output dimensions of the networks.
+Another limitation of traditional deep RL architectures is their inapplicability in environments of different sizes to the fixed input dimensions of the networks.
 Suppose we train an MLP policy on the adjacency matrix of a graph with $$N$$ nodes.
-If we then test the policy on a graph with $$M > N$$ nodes, the input and output dimensions of the MLP will not match, and the policy will be unable to process the new graph.
+We could, in theory, evaluate the policy on a smaller graph with $$M < N$$ nodes by padding the adjacency matrix to size $$N \times N$$.
+However, if we then test the policy on a graph with $$M > N$$ nodes, the input dimensions of the MLP will not match, and the policy will be unable to process the new graph.
 In a true graph structure, the number of nodes can vary, and we may not have any guarantees about the structure of the graph that would allow us to engineer a fixed-size representation.
 GNNs, on the other hand, are inherently size-invariant due to their message-passing architecture.
-This means that it is possible to train a GNN-based policy on small graphs and deploy it on much larger graphs without any modification to the network architecture, allowing zero-shot generalisation.
+This means that it is possible to train a GNN-based policy on small graphs and deploy it on much larger graphs without any modification to the network architecture, which can enable emergent generalisation behaviour.
 
 
 ## Reinforcement Learning with Graph Neural Networks
 
 Instead of using a traditional MLP or CNN as the policy or value network in a deep RL architecture, we can use a GNN.
-This allows us to leverage the advantages of GNNs, such as variable input and output dimensions, permutation invariance, and size generalisation.
+This allows us to leverage the advantages of GNNs, such as variable input and output dimensions, and permutation invariance.
 
 In order to use a GNN in an RL setting, we first need to represent the environment as a graph.
 In many cases, the environment can be naturally represented as a graph, with nodes representing entities in the environment and edges representing relationships or interactions between those entities.
@@ -264,7 +267,7 @@ In many traditional multi-agent RL settings, it is common to assume a fixed numb
 A policy trained in this manner therefore becomes inapplicable when the number of agents changes.
 In the real world, the number of agents in a system can rarely be guaranteed, due to failures, additions, or dynamic participation.
 Instead, by representing the multi-agent system as a graph, where nodes represent agents and edges represent communication links between them, we can use GNNs to process the observations and actions of the agents.
-This allows us to train policies that can generalise to different numbers of agents at test time, as the GNN can handle graphs with variable size and connectivity.
+This allows us to train policies that could generalise to different numbers of agents at test time, as the GNN can handle graphs with variable size and connectivity.
 
 While GNNs offer several advantages in RL settings, it can be non-trivial to design the graph representation of the environment and define the action space and transition function of the MDP.
 In the following sections, we discuss common design approaches seen in the literature for applying GNNs in RL settings.
@@ -300,8 +303,8 @@ When using a GNN as a feature extractor, there are two main approaches to obtain
 If the graph embedding is pooled to a single vector, it is important to consider the pooling method used.
 Common pooling methods include mean pooling, max pooling, and sum pooling.
 These methods are permutation invariant, meaning that the order of the nodes does not affect the resulting graph embedding.
-However, methods like summation are sensitive to the size of the graph, which can lead to issues when generalising to larger or smaller graphs.
-Similarly, if using node embeddings directly, care must be taken in the selection of the aggregation method to preserve generalisation to different graph structures, for example if a larger number of neighbours are present than seen during training.
+However, methods like summation are sensitive to the size of the graph, which can lead to issues when embedding larger or smaller graphs.
+Similarly, if using node embeddings directly, care must be taken in the selection of the aggregation method to preserve embedding properties across different graph structures, for example if a larger number of neighbours are present than seen during training.
 
 #### Examples
 + Li et al. <d-cite key="liMessageAwareGraphAttention2021"></d-cite> approach a distributed multi-robot path planning problem where agents can communicate with adjacent robots, represented by a dynamic distance-based communication graph. At each step, an agent can take an action from {up, down, left, right, idle}. Each agent observes obstacles within their field of view, which is processed by a CNN to produce node features. These features are communicated with neighbouring agents according to the graph structure, executing the message passing of the GNN in a distributed manner. To obtain the action distribution, the aggregated node embeddings are passed to an MLP followed by a softmax layer: $$f : \mathbb{R}^d \rightarrow \mathbb{R}^{5}$$, where $$d$$ is the dimension of the node embeddings. In this case, the policy is trained using imitation learning from expert demonstrations.
@@ -330,7 +333,7 @@ From these scores, an action distribution can be created, or the highest scoring
 
 More generally, we can consider the entire set of nodes in the graph as possible actions.
 This is particularly useful in environments where the agent can select any node in the graph as an action, such as in combinatorial optimisation problems.
-Using this action space, an agent can be trained on graphs of small sizes, and learn a policy that generalises to much larger graphs at test time.
+Using this action space, an agent can be trained on graphs of small sizes, and learn a policy that can be evaluated on much larger graphs at test time.
 
 #### Score-Based
 
@@ -1028,7 +1031,7 @@ Here are the results for the above models evaluated on 20-node graphs.
 | GCN | -8.60 ± 1.41 | 17.76 ± 0.97 |
 | GraphSAGE | -5.82 ± 1.21 | 14.47 ± 0.97 |
 
-We can see that the GraphSAGE model is well-suited to the MVC task, and is able to generalise effectively to larger graphs.
+We can see that the GraphSAGE model is well-suited to the MVC task, and is able to perform well on larger out-of-distribution graphs.
 
 <!-- | Embedding Dimension | Mean Reward | Mean Episode Length |
 |-------|-------------|---------------------|
@@ -1060,7 +1063,7 @@ In addition, standardised benchmarks and evaluation protocols for GNN-based RL m
 
 ## Conclusion
 
-GNNs offer a powerful approach for modelling policies in RL settings, enabling capabilities such as permutation invariance, variable action spaces, and size generalisation.
+GNNs offer a powerful approach for modelling policies in RL settings, enabling capabilities such as permutation invariance, variable action spaces, and dynamic input sizes.
 By representing the environment as a graph, we can leverage the strengths of GNNs to tackle complex RL problems that are difficult to solve with traditional deep learning architectures.
 While there are still challenges and open questions to be addressed, the integration of GNNs into RL holds great promise for advancing the field and unlocking new applications.
 Looking forward, we hope to see more research exploring the application of GNNs in policy networks, as well as improved support for graph-based RL in popular libraries and frameworks.
