@@ -206,7 +206,7 @@ This is where GNNs can be very useful, as permutation invariance is an intrinsic
 
 #### Experiment
 
-Permutation invarance can be a very important design consideration for some environments.
+Permutation invariance can be a very important design consideration for some environments.
 Let's run a simple experiment to illustrate this point.
 Given a small 5-node graph, we will generate all 120 permutations of its adjacency matrix, and pass these through simple MLP, CNN, and GNN models.
 These models are randomly initialised and untrained, so we do not expect any meaningful outputs.
@@ -608,7 +608,7 @@ class GraphActorCriticProcessor(nn.Module):
         super().__init__()
         # Save output dimensions
         # This will be used by the MaskableActorCriticPolicy to create
-        # the value network (the actor network will be overriden)
+        # the value network (the actor network will be overridden)
         self.latent_dim_vf = embed_dim
         self.latent_dim_pi = 0  # unused
 
@@ -1051,7 +1051,7 @@ At this stage, modelling more complex action spaces, such as hybrids of fixed an
 
 The limitations of GNN architectures themselves can also limit their effectiveness in RL settings.
 At present, many GNNs operate best under the assumption of homophily: that connected nodes are more likely to share similar features or labels.
-GNNs have also been designed for heterogenous graphs, e.g. <d-cite key="wang2019heterogeneous"></d-cite>, but these require a strict bipartite structure, limiting their applicability.
+GNNs have also been designed for heterogeneous graphs, e.g. <d-cite key="wang2019heterogeneous"></d-cite>, but these require a strict bipartite structure, limiting their applicability.
 At present, even if an environment can be modelled as a graph, complex structures or interactions (such as distinct node types, or higher-order relationships) may create an environment that is not well-suited to existing GNN architectures.
 Furthermore, many GNNs can be prone to over-smoothing, where node embeddings become indistinguishable after multiple message-passing layers <d-cite key="rusch2023survey"></d-cite>.
 This makes long-range dependencies difficult to capture, and can limit the effectiveness of GNNs in environments with large or complex graphs.
