@@ -201,6 +201,18 @@ In a simple environment like tic-tac-toe we can easily modify the state represen
 However, in general, permutation invariance is not always an easy property to engineer.
 This is where GNNs can be very useful, as permutation invariance is an intrinsic property of the network, inherently collapsing equivalent state representations for free.
 
+#### Experiment
+
+Permutation invarance can be a very important design consideration for some environments.
+Let's run a simple experiment to illustrate this point.
+Given a small 5-node graph, we will generate all 120 permutations of its adjacency matrix, and pass these through simple MLP, CNN, and GNN models.
+These models are randomly initialised and untrained, so we do not expect any meaningful outputs.
+<div class="c-page">
+  <iframe src="{{ 'assets/html/2026-04-27-rl-with-gnns/permutation_model_outputs.html' | relative_url }}" frameborder='0' scrolling='no' height="500px" width="100%"></iframe>
+</div>
+From the plot, we can see that the MLP and CNN models produce widely varying outputs for different permutations of the exact same graph.
+Meanwhile, the GNN produces identical outputs for all permutations.
+If we were to train these models, the MLP and CNN would have to learn to map all permutations of the same graph to the same output, which is a much more difficult task than simply learning the mapping for one representation of the graph.
 
 ### Fixed Output Dimensions
 
