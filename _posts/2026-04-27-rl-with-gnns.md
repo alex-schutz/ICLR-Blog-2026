@@ -78,7 +78,7 @@ These properties have great value in applications such as multi-agent systems, n
 We hypothesise that the lack of uptake of GNNs in RL is due to unclear design patterns for integrating GNNs into RL frameworks, as well as a lack of implementation support in popular RL libraries.
 Thus, in this blog post, we aim to provide a comprehensive overview of GNNs in RL, focusing on the practical design aspects of using GNNs as policy or value function approximators.
 We discuss common approaches to representing environments as graphs, defining action spaces, and handling invalid actions.
-Furthermore, we include a detailed implementation example using Stable Baselines 3 (SB3) <d-cite key="raffinStableBaselines3Reliable2021"></d-cite>, a popular RL library in Python.
+Furthermore, we include a detailed implementation example using Stable Baselines 3 (SB3) <d-cite key="raffin2021stable"></d-cite>.
 We hope that this post will serve as a useful resource for researchers and practitioners interested in leveraging GNNs in RL settings.
 
 ## Preliminaries
