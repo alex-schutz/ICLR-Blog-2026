@@ -380,14 +380,15 @@ The reward for selecting a valid node is equal to the negative weight of the nod
 For the agent using penalties, we set the maximum episode length to be the number of nodes in the graph, to prevent indefinite episodes.
 Both agents are trained using PPO with the same GNN architecture (2 GraphSAGE layers) and hyperparameters.
 Training is performed on random graphs with 5, 10 and 15 nodes, and validation is performed on graphs with 15 nodes.
-Below we show the validation performance of both agents.
+Below we show the validation performance of both agents across 5 seeds.
 
 <div class="c-page">
   <iframe src="{{ 'assets/html/2026-04-27-rl-with-gnns/action_masking.html' | relative_url }}" frameborder='0' scrolling='no' height="500px" width="100%"></iframe>
 </div>
 
 From the results, we can clearly see that the agent using penalties instead of action masking fails to learn a good policy, whereas the action masking agent learns a policy quickly.
-Even though the graphs are quite small, the penalty-based agent struggles to learn to avoid invalid actions, leading to poor performance.
+Even though the graphs are quite small, the penalty-based agent generally struggles to learn to avoid invalid actions, leading to poor performance.
+For two of the seeds, the penalty-based agent succeeded in learning a policy with similar performance to the action masking agent, but this was not consistent across seeds, demonstrating that this method is also sensitive to initialisation.
 Clearly, this is an important design decision which can have a significant impact on the performance of GNN-based RL agents.
 
 ## Implementation Example
