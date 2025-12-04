@@ -966,7 +966,7 @@ We will train on randomly generated graphs of size 5, 10 and 15 nodes.
 We validate the policy on graphs of size 15 at regular intervals during training.
 Here we train a 2-layer GAT with embedding dimension 128 on graphs with 100k PPO steps.
 For comparison, we also train GCN and GraphSAGE architectures with the same parameters. 
-Below we plot the validation performance of the agents.
+Below we plot the validation performance of the agents over 5 seeds.
 
 <div class="c-page">
   <iframe src="{{ 'assets/html/2026-04-27-rl-with-gnns/rewards_compare.html' | relative_url }}" frameborder='0' scrolling='no' height="500px" width="100%"></iframe>
