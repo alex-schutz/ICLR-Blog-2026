@@ -378,8 +378,9 @@ However, if invalid actions are allowed (and penalised), the agent may select th
 We will compare two agents: one using action masking to prevent invalid actions, and one using a fixed penalty of -1 for selecting an invalid action.
 The reward for selecting a valid node is equal to the negative weight of the node.
 For the agent using penalties, we set the maximum episode length to be the number of nodes in the graph, to prevent indefinite episodes.
-Both agents are trained using PPO with the same GNN architecture and hyperparameters.
+Both agents are trained using PPO with the same GNN architecture (2 GraphSAGE layers) and hyperparameters.
 Training is performed on random graphs with 5, 10 and 15 nodes, and validation is performed on graphs with 15 nodes.
+Below we show the validation performance of both agents.
 
 <div class="c-page">
   <iframe src="{{ 'assets/html/2026-04-27-rl-with-gnns/action_masking.html' | relative_url }}" frameborder='0' scrolling='no' height="500px" width="100%"></iframe>
@@ -964,7 +965,8 @@ With the environment and policy defined, we can now train the GNN-based policy u
 We will train on randomly generated graphs of size 5, 10 and 15 nodes.
 We validate the policy on graphs of size 15 at regular intervals during training.
 Here we train a 2-layer GAT with embedding dimension 128 on graphs with 100k PPO steps.
-For comparison, we also train GCN and GraphSAGE architectures with the same parameters.
+For comparison, we also train GCN and GraphSAGE architectures with the same parameters. 
+Below we plot the validation performance of the agents.
 
 <div class="c-page">
   <iframe src="{{ 'assets/html/2026-04-27-rl-with-gnns/rewards_compare.html' | relative_url }}" frameborder='0' scrolling='no' height="500px" width="100%"></iframe>
