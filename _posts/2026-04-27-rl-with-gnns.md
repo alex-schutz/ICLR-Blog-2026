@@ -386,9 +386,9 @@ Below we show the validation performance of both agents across 5 seeds.
   <iframe src="{{ 'assets/html/2026-04-27-rl-with-gnns/action_masking.html' | relative_url }}" frameborder='0' scrolling='no' height="500px" width="100%"></iframe>
 </div>
 
-From the results, we can clearly see that the agent using penalties instead of action masking fails to learn a good policy, whereas the action masking agent learns a policy quickly.
+From the results, we can see that the agent using penalties instead of action masking often fails to learn a good policy, whereas the action masking agent learns a policy quickly and consistently.
 Even though the graphs are quite small, the penalty-based agent generally struggles to learn to avoid invalid actions, leading to poor performance.
-For two of the seeds, the penalty-based agent succeeded in learning a policy with similar performance to the action masking agent, but this was not consistent across seeds, demonstrating that this method is also sensitive to initialisation.
+For some of the seeds, the penalty-based agent succeeds in learning a policy with similar performance to the action masking agent, while for others the policy has no improvement, demonstrating that this method is also sensitive to initialisation.
 Clearly, this is an important design decision which can have a significant impact on the performance of GNN-based RL agents.
 
 ## Implementation Example
