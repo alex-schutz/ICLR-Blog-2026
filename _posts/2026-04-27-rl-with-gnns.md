@@ -136,7 +136,7 @@ However, these methods often fail to capture complex relationships in the graph.
 _Deep_ graph embedding methods aim to learn the representation by training end-to-end with task-specific supervision signals.
 Graph Neural Networks (GNNs) are a class of deep learning models designed to operate on graph-structured data.
 
-{% include figure.liquid path="assets/img/2026-04-27-rl-with-gnns/graph_embedding.svg" class="img-fluid" alt="On the left is an input graph with 8 nodes. On the right is a plot demonstrating the 2-D embedding of the nodes in vector space." caption="A GNN can learn an embedding of nodes in vector space." %}
+{% include figure.liquid path="assets/img/2026-04-27-rl-with-gnns/graph_embedding2.svg" class="img-fluid" alt="On the left is an input graph with 8 nodes. On the right is a plot demonstrating the 2-D embedding of the nodes in vector space." caption="A GNN can learn an embedding of nodes in vector space." %}
 
 GNNs rely on the _neighbourhood aggregation_ principle: the features of a node are learned by aggregating the features of its neighbours using a learnable parameterization and an activation function.
 Typically, GNNs are parameter-sharing architectures, where the same set of parameters is used across all nodes and edges in the graph, akin to the convolution operation in CNNs.
@@ -159,7 +159,7 @@ Here, $$M^{(l)}$$ is the message function that computes messages from neighbouri
 Typically, $$M^{(l)}$$ and $$U^{(l)}$$ are parameterised by neural networks such as MLPs.
 The sum operation can be replaced with other permutation-invariant operations such as mean or max aggregation.
 
-{% include figure.liquid path="assets/img/2026-04-27-rl-with-gnns/aggregation-illustration.svg" class="img-fluid" alt="A diagram showing the message passing step in a GNN. A node is highlighted in red, with an unknown node embedding vector. Each of its neighbours' node embeddings are shown being passed to the highlighted node with arrows." caption="In a GNN, the embedding of a node is updated by aggregating messages from its neighbours. Reproduced with permission from <d-cite key='darvariu2024graph'></d-cite>." %}
+{% include figure.liquid path="assets/img/2026-04-27-rl-with-gnns/aggregation-illustration2.svg" class="img-fluid" alt="A diagram showing the message passing step in a GNN. A node is highlighted in red, with an unknown node embedding vector. Each of its neighbours' node embeddings are shown being passed to the highlighted node with arrows." caption="In a GNN, the embedding of a node is updated by aggregating messages from its neighbours. Reproduced with permission from <d-cite key='darvariu2024graph'></d-cite>." %}
 
 By applying several layers of parameterised message functions and update functions, we obtain a final embedding $$\mathbf{z}_{v_i} = \mathbf{h}_{v_i}^{(L)}$$ for each node.
 This embedding captures information from its $$L$$-hop neighbourhood.
@@ -184,7 +184,7 @@ Even though MLPs and CNNs are widely used in Deep RL, there are a number of limi
 Graphs nominally enjoy the property of permutation invariance: regardless of the ordering of the nodes, the properties are the same, as only the *relationships* between the nodes are important.
 When we write down a graph's representation using an adjacency matrix, we implicitly create an ordering of the nodes.
 
-{% include figure.liquid path="assets/img/2026-04-27-rl-with-gnns/permutation.svg" class="img-fluid" alt="A four-node graph, where three nodes are connected in a triangle and the fourth is connected to the top node in the triangle. Two different adjacency matrices which both represent the graph are shown on the left and right." caption="The same graph can be represented using different adjacency matrices depending on the ordering of the nodes." %}
+{% include figure.liquid path="assets/img/2026-04-27-rl-with-gnns/permutation2.svg" class="img-fluid" alt="A four-node graph, where three nodes are connected in a triangle and the fourth is connected to the top node in the triangle. Two different adjacency matrices which both represent the graph are shown on the left and right." caption="The same graph can be represented using different adjacency matrices depending on the ordering of the nodes." %}
 
 If we use the matrix representation of the graph as input to a neural network, we lose the property of permutation invariance.
 The two adjacency matrices above are created from the same graph. Fed to an MLP, we obtain two very different outputs.
@@ -221,7 +221,7 @@ This means that the number of possible actions an agent can take is predetermine
 This can be limiting in environments where the action space is dynamic or variable, such as in navigation tasks or multi-agent systems.
 In such cases, existing approaches often resort to padding the action space to a fixed size or using hierarchical action representations, which can lead to inefficiencies and suboptimal policies.
 
-{% include figure.liquid path="assets/img/2026-04-27-rl-with-gnns/fixed_vs_variable.svg" class="img-fluid" alt="(Left) An agent in a room with 6 numbered doors. Each number fits in a box representing an action space with dimension 6. (Right) An agent in a room with 7 doors. The first 6 doors are numbered, and the seventh is marked with a red question mark. The 6 numbers fit in boxes representing the action space with dimension 6, but the 7th is marked with red dashed lines on the edge of the boxes." caption="A fixed action space does not accommodate flexibility in the environment." %}
+{% include figure.liquid path="assets/img/2026-04-27-rl-with-gnns/fixed_vs_variable2.svg" class="img-fluid" alt="(Left) An agent in a room with 6 numbered doors. Each number fits in a box representing an action space with dimension 6. (Right) An agent in a room with 7 doors. The first 6 doors are numbered, and the seventh is marked with a red question mark. The 6 numbers fit in boxes representing the action space with dimension 6, but the 7th is marked with red dashed lines on the edge of the boxes." caption="A fixed action space does not accommodate flexibility in the environment." %}
 
 For example, suppose an agent is navigating through a building with rooms connected by doors.
 If we define the action space to be the set of doors in the current room, the number of possible actions can vary depending on the room.
@@ -268,7 +268,7 @@ The most straightforward way to use a GNN in RL is to use it as a feature extrac
 In this case, the GNN processes the graph-structured observation from the environment and produces a graph or node-level embedding vector.
 This vector can then passed to an MLP to produce action values or probabilities.
 
-{% include figure.liquid path="assets/img/2026-04-27-rl-with-gnns/fixed_action_space.svg" class="img-fluid" alt="A GNN embedding creates feature vectors for each node in a graph. These are passed to a pooling function (sum operator) to create a graph embedding. The graph embedding is fed to a MLP + softmax block, which produces an action distribution with a fixed dimension." caption="For a fixed action space, the GNN can be used as a feature extractor, with the resulting graph or node embeddings passed to an MLP to produce action values or probabilities." %}
+{% include figure.liquid path="assets/img/2026-04-27-rl-with-gnns/fixed_action_space2.svg" class="img-fluid" alt="A GNN embedding creates feature vectors for each node in a graph. These are passed to a pooling function (sum operator) to create a graph embedding. The graph embedding is fed to a MLP + softmax block, which produces an action distribution with a fixed dimension." caption="For a fixed action space, the GNN can be used as a feature extractor, with the resulting graph or node embeddings passed to an MLP to produce action values or probabilities." %}
 
 When using a GNN as a feature extractor, there are two main approaches for obtaining the action space from the graph embedding: pooling the node embeddings to yield a graph-level embedding, or using the node embeddings directly.
 If the graph embedding is pooled to a single vector, it is important to consider the pooling method used.
@@ -293,7 +293,7 @@ This type of action space is particularly useful in decentralised multi-agent se
 When using neighbours as actions, the typical approach is to use the GNN to produce node-level embeddings, which are then used to score the neighbours of the current node.
 From these scores, an action distribution can be created, or the highest scoring neighbour can be selected directly.
 
-{% include figure.liquid path="assets/img/2026-04-27-rl-with-gnns/neighbours_action_space.svg" class="img-fluid" alt="A GNN embedding creates feature vectors for the neighbours of a node of interest within a graph. These are passed to a scoring function in the form of an MLP. The scores can be used to create an action distribution using softmax." caption="Given a node of interest, the node embeddings of its neighbours can be passed through a scoring function to generate an action distribution." %}
+{% include figure.liquid path="assets/img/2026-04-27-rl-with-gnns/neighbours_action_space2.svg" class="img-fluid" alt="A GNN embedding creates feature vectors for the neighbours of a node of interest within a graph. These are passed to a scoring function in the form of an MLP. The scores can be used to create an action distribution using softmax." caption="Given a node of interest, the node embeddings of its neighbours can be passed through a scoring function to generate an action distribution." %}
 
 #### Examples
 + Goeckner et al. <d-cite key="goecknerGraphNeuralNetworkbased2024"></d-cite> pose a patrolling problem in which a team of agents must overcome partial observability, distributed communications, and agent attrition. At each step, an agent chooses a node to move to from its current location $$v$$. To do this, the GNN-based embedding of each neighbour $$ \{z_u \mid u \in \mathcal{N}(v) \}$$ is passed through a scoring MLP, $$\text{SCORE}: \mathbb{R}^d \rightarrow \mathbb{R}$$. The scores of the neighbours are then passed to a selection MLP, which outputs the index of the action to take. The policies of the agents are trained using a variant of multi-agent PPO (MAPPO).
@@ -308,7 +308,7 @@ Using this action space, an agent can be trained on graphs of small sizes, and l
 
 Similarly to the neighbours-as-actions approach, the node embeddings produced by the GNN can be scored to produce action values or action probabilities.
 
-{% include figure.liquid path="assets/img/2026-04-27-rl-with-gnns/nodes_action_space.svg" class="img-fluid" alt="A GNN embedding creates feature vectors for all nodes in a graph. These are passed to a scoring function in the form of an MLP. The scores can be used to create an action distribution using softmax." caption="The embeddings of all nodes can be passed through a scoring function to generate an action distribution." %}
+{% include figure.liquid path="assets/img/2026-04-27-rl-with-gnns/nodes_action_space2.svg" class="img-fluid" alt="A GNN embedding creates feature vectors for all nodes in a graph. These are passed to a scoring function in the form of an MLP. The scores can be used to create an action distribution using softmax." caption="The embeddings of all nodes can be passed through a scoring function to generate an action distribution." %}
 
 
 #### Examples
@@ -323,7 +323,7 @@ Once we know what the embedding of the desired action looks like, we can choose 
 The proto-action is compared to the node embeddings of the other available actions using a scoring function, from which we can then produce a probability distribution or choose an action directly.
 The inspiration for this approach comes from <d-cite key="dulac-arnoldDeepReinforcementLearning2016"></d-cite>, where the authors use a similar method to select discrete actions that have a continuous representation.
 
-{% include figure.liquid path="assets/img/2026-04-27-rl-with-gnns/proto_action.svg" class="img-fluid" alt="Feature vectors for all nodes are passed through a pooling layer and an action predictor to create a proto-action. The proto-action is used to compare against node embeddings in a scoring function. The scores can be used to create an action distribution using softmax." caption="A proto-action is created from the pooled node embeddings, and compared to the embedding of each node in a scoring function to create an action distribution." %}
+{% include figure.liquid path="assets/img/2026-04-27-rl-with-gnns/proto_action2.svg" class="img-fluid" alt="Feature vectors for all nodes are passed through a pooling layer and an action predictor to create a proto-action. The proto-action is used to compare against node embeddings in a scoring function. The scores can be used to create an action distribution using softmax." caption="A proto-action is created from the pooled node embeddings, and compared to the embedding of each node in a scoring function to create an action distribution." %}
 
 #### Examples
 + Darvariu et al. <d-cite key="darvariuSolvingGraphbasedPublic2021"></d-cite> approach a public goods game reformulated as finding a maximal independent set in a graph. At each step, a node is selected from the graph to add to the set until no valid nodes remain. The authors create a proto-action by first summing the node embeddings and then passing it through an MLP. An action distribution is created by taking the Euclidean distance between the proto-action and each node embedding, passing these distances through a softmax layer to obtain probabilities. The policy is trained using imitation learning.
@@ -341,7 +341,7 @@ In Dai et al. <d-cite key="daiAdversarial2018"></d-cite>, edges are added or rem
 In fact, the nodes do not need to be selected sequentially: Trivedi et al. <d-cite key="trivediGraphOptLearningOptimization2020"></d-cite> select both nodes simultaneously by sampling from the same Gaussian policy.
 While this approach is straightforward and works with existing GNN architectures, it can be less efficient, and is not necessarily optimal if edge attributes are important.
 
-{% include figure.liquid path="assets/img/2026-04-27-rl-with-gnns/edges_action_space.svg" class="img-fluid" alt="Edge embeddings are created for each edge in a graph. These are passed to a scoring function in the form of an MLP. The scores can be used to create an action distribution over edges using softmax." caption="Using an embedding of the edges, a function can be applied to create an action distribution over edges in the graph." %}
+{% include figure.liquid path="assets/img/2026-04-27-rl-with-gnns/edges_action_space2.svg" class="img-fluid" alt="Edge embeddings are created for each edge in a graph. These are passed to a scoring function in the form of an MLP. The scores can be used to create an action distribution over edges using softmax." caption="Using an embedding of the edges, a function can be applied to create an action distribution over edges in the graph." %}
 
 Given an edge embedding, edges can be selected in a similar manner to nodes, either through scoring or proto-action methods.
 
