@@ -12,9 +12,15 @@ mermaid:
   enabled: true
   zoomable: true
 
-# Anonymize when submitting
 authors:
-  - name: Anonymous
+  - name: Alex Schutz
+    url: "https://alex-schutz.github.io/"
+    affiliations:
+      name: University of Oxford
+  - name: Victor-Alexandru Darvariu
+    url: "https://victor.darvariu.me/"
+    affiliations:
+      name: University of Oxford
 
 
 # must be the exact same name as your blogpost
