@@ -80,7 +80,7 @@ Thus, in this blog post, we aim to provide a comprehensive overview of GNNs in R
 We discuss common approaches to representing environments as graphs, defining action spaces, and handling invalid actions.
 Furthermore, we include a detailed implementation example using Stable Baselines 3 (SB3) <d-cite key="raffin2021stable"></d-cite> and PyTorch Geometric <d-cite key="fey2019fast"></d-cite>, two of the most widely used RL and GNN libraries respectively.
 
-We hope that this post and [associated code](https://anonymous.4open.science/r/RL-with-GNNs-7B7E/README.md) will serve as a useful starting point for researchers and practitioners interested in leveraging GNNs in RL settings.
+We hope that this post and [associated code](https://github.com/alex-schutz/RL-with-GNNs) will serve as a useful starting point for researchers and practitioners interested in leveraging GNNs in RL settings.
 
 ## Preliminaries
 
@@ -401,8 +401,7 @@ The MVC problem is defined on an undirected graph $$G = (V, E)$$ with node weigh
 The goal is to find a subset of nodes $$C \subseteq V$$ such that every edge $$ (u, v) \in E $$ has at least one endpoint in $$ C $$, while minimising the total weight of the selected nodes $$ \sum_{v \in C} w(v) $$.
 We will formulate this as a sequential decision-making problem, where at each step, the agent selects a node to add to the cover set until all edges are covered.
 
-<!-- TODO: change to real repo -->
-Full code can be found in the [accompanying GitHub repository](https://anonymous.4open.science/r/RL-with-GNNs-7B7E/README.md), along with extra network examples and environment implementations.
+Full code can be found in the [accompanying GitHub repository](https://github.com/alex-schutz/RL-with-GNNs), along with extra network examples and environment implementations.
 
 ### A Note on SB3 Integration
 
@@ -957,8 +956,7 @@ We will not provide the full implementation of the environment here, but the key
 
 {% endhighlight %}
 
-<!-- TODO: change to real repo -->
-Full code for the environment can be found in the [accompanying GitHub repository](https://anonymous.4open.science/r/RL-with-GNNs-7B7E/README.md).
+Full code for the environment can be found in the [accompanying GitHub repository](https://github.com/alex-schutz/RL-with-GNNs).
 
 ### Training the Policy
 
