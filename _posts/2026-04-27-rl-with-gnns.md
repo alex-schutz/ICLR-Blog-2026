@@ -399,13 +399,13 @@ Clearly, this is an important design decision which can have a significant impac
 
 ## Implementation Example
 
-We will illustrate how to implement a simple GNN-based policy network using PyTorch Geometric <d-cite key="fey2019fast"></d-cite>.
-This will be trained using Proximal Policy Optimisation (PPO) <d-cite key="schulman2017proximalpolicyoptimizationalgorithms"></d-cite> on a weighted minimum vertex cover (MVC) problem.
-We will use Stable Baselines3 (SB3) <d-cite key="raffin2021stable"></d-cite> for the RL training loop.
+We illustrate how to implement a simple GNN-based policy network using PyTorch Geometric <d-cite key="fey2019fast"></d-cite>.
+The training is performed using Proximal Policy Optimisation (PPO) <d-cite key="schulman2017proximalpolicyoptimizationalgorithms"></d-cite> on a weighted minimum vertex cover (MVC) problem.
+We use Stable Baselines3 (SB3) <d-cite key="raffin2021stable"></d-cite> for the RL training loop.
 
 The MVC problem is defined on an undirected graph $$G = (V, E)$$ with node weights $$w: V \rightarrow \mathbb{R}^+$$.
 The goal is to find a subset of nodes $$C \subseteq V$$ such that every edge $$ (u, v) \in E $$ has at least one endpoint in $$ C $$, while minimising the total weight of the selected nodes $$ \sum_{v \in C} w(v) $$.
-We will formulate this as a sequential decision-making problem, where at each step, the agent selects a node to add to the cover set until all edges are covered.
+We formulate this as a sequential decision-making problem, where at each step, the agent selects a node to add to the cover set until all edges are covered.
 
 Full code can be found in the [accompanying GitHub repository](https://github.com/alex-schutz/RL-with-GNNs), along with extra network examples and environment implementations.
 
@@ -415,7 +415,7 @@ SB3 provides a flexible framework for implementing custom policy networks with s
 SB3 assumes an environment that follows the OpenAI Gym interface <d-cite key="brockman2016openai"></d-cite>, which requires defining the observation and action spaces, as well as the step and reset functions.
 While Gymnasium <d-cite key="towers2024gymnasium"></d-cite> supports graph-structured or sequence-structured observations, SB3 does not natively support these types of observations, and instead requires both the observation space and action space to have pre-defined fixed dimensions.
 
-In order to work around this limitation, we will require that our environments and policies use fixed-size graphs of size `max_nodes`, padded as necessary.
+In order to work around this limitation, we require that our environments and policies use fixed-size graphs of size `max_nodes`, padded as necessary.
 This restriction allows us to use SB3's existing functionality while still leveraging the benefits of GNNs for processing graph-structured data.
 While the padding introduces some overhead, the padded graphs in matrix form will immediately be transformed back into sparse graph representations to be processed by the GNN.
 The `max_nodes` parameter should be chosen based on the expected size of the graphs in the environment.
@@ -423,22 +423,22 @@ However, this parameter does not inherently impose any architectural constraints
 
 ### The Actor Critic Architecture
 
-We will base our implementation on the actor-critic architecture provided by SB3.
-As a base class, we will use `MaskableActorCriticPolicy` from the `sb3_contrib` package, which allows us to apply action masks to the action distribution.
-This is useful in our environment, as not all nodes will be valid actions at each step (i.e., nodes that have already been selected cannot be selected again).
+We base our implementation on the actor-critic architecture provided by SB3.
+As a base class, we use `MaskableActorCriticPolicy` from the `sb3_contrib` package, which allows us to apply action masks to the action distribution.
+This is useful in our environment, as not all nodes are valid actions at each step (i.e., nodes that have already been selected cannot be selected again).
 
 The key components of the architecture are:
-1. **Features extractor**: This is typically a network that processes the raw observations from the environment into a latent representation, and is shared by both the actor and critic networks. In a GNN-based architecture, this could be an encoder that maps different types of node and edge features into a common feature space. In our example, this will be a simple transformation from the matrix representation of the graph to a PyTorch Geometric `Data` object.
-2. **Processor**: This network defines the main processing of the graph-structured data, which here will be shared by both the actor and critic networks. This will be a GNN that processes the graph and produces node embeddings and a graph-level embedding.
-3. **Policy and value heads**: These are the final layers that produce the action distribution and value estimates, respectively. In our case, the policy head will use a [proto-action approach](#nodes-as-actions-proto-action) to select nodes, while the value head will use the graph-level embedding to estimate the value of the current state.
+1. **Features extractor**: This is typically a network that processes the raw observations from the environment into a latent representation, and is shared by both the actor and critic networks. In a GNN-based architecture, this could be an encoder that maps different types of node and edge features into a common feature space. In our example, this is a simple transformation from the matrix representation of the graph to a PyTorch Geometric `Data` object.
+2. **Processor**: This network defines the main processing of the graph-structured data, which here is shared by both the actor and critic networks. This is a GNN that processes the graph and produces node embeddings and a graph-level embedding.
+3. **Policy and value heads**: These are the final layers that produce the action distribution and value estimates, respectively. In our case, the policy head uses a [proto-action approach](#nodes-as-actions-proto-action) to select nodes, while the value head uses the graph-level embedding to estimate the value of the current state.
 
 More detail on implementing custom policies in SB3 can be found in the [SB3 documentation](https://stable-baselines3.readthedocs.io/en/master/guide/custom_policy.html).
 
 ### Features Extractor
 
-First, we will define a simple feature extractor that converts the matrix representation of the graph into a PyTorch Geometric `Data` object.
-We will assume that the environment implements observations in the form of a dictionary, where the key `node_features` maps to a matrix of shape `(max_nodes, node_dim)`, the key `edge_features` maps to a matrix of shape `(max_nodes, max_nodes, node_dim)`, and the key `adjacency_matrix` maps to a binary adjacency matrix of shape `(max_nodes, max_nodes)`.
-Based on these matrix representations, we will create the corresponding `Data` object, where we remove any padding from the matrices by assuming that any node with zero edges is padding.
+First, we define a simple feature extractor that converts the matrix representation of the graph into a PyTorch Geometric `Data` object.
+We assume that the environment implements observations in the form of a dictionary, where the key `node_features` maps to a matrix of shape `(max_nodes, node_dim)`, the key `edge_features` maps to a matrix of shape `(max_nodes, max_nodes, node_dim)`, and the key `adjacency_matrix` maps to a binary adjacency matrix of shape `(max_nodes, max_nodes)`.
+Based on these matrix representations, we create the corresponding `Data` object, where we remove any padding from the matrices by assuming that any node with zero edges is padding.
 
 {% highlight python %}
 
@@ -660,7 +660,7 @@ class GraphActorCriticProcessor(nn.Module):
 
 ### Defining the Actor Network
 
-Next, we will define the policy network that uses the GNN to produce action probabilities.
+Next, we define the policy network that uses the GNN to produce action probabilities.
 We create a proto-action from the pooled node embeddings produced by the GNN indicating the best action to take, then use a similarity function to rank the available actions.
 
 {% highlight python %}
@@ -770,10 +770,10 @@ class ProtoActionNetwork(nn.Module):
 
 ### Putting Together the Complete Policy
 
-Finally, we will create the complete GNN-based policy by combining the feature extractor, processor, and actor/critic networks.
+Finally, we create the complete GNN-based policy by combining the feature extractor, processor, and actor/critic networks.
 Note that we have not explicitly defined the critic network. 
 This is because the critic MLP is automatically created by the `MaskableGraphActorCriticPolicy` base class, according to the `latent_dim_vf` attribute defined in the processor network.
-This will map the graph embedding to a scalar value estimate, and the depth can be configured via the `net_arch` parameter.
+This maps the graph embedding to a scalar value estimate, and the depth can be configured via the `net_arch` parameter.
 
 {% highlight python %}
 
@@ -872,14 +872,14 @@ class MaskableGraphActorCriticPolicy(MaskableActorCriticPolicy):
 
 ### Defining the Environment
 
-With the policy defined, we will now create a simple Gym environment for the weighted minimum vertex cover problem.
-Here, we will use a node feature vector consisting of the node weight and a binary indicator of whether the node has been selected.
-We will also define an edge feature vector consisting of a binary indicator of whether the edge is covered in the current solution.
-We will use a simple reward structure, where the agent receives a negative reward equal to the weight of the selected node at each step, and the episode ends when all edges are covered.
+With the policy defined, we now create a simple Gym environment for the weighted minimum vertex cover problem.
+Here, we use a node feature vector consisting of the node weight and a binary indicator of whether the node has been selected.
+We also define an edge feature vector consisting of a binary indicator of whether the edge is covered in the current solution.
+We use a simple reward structure, where the agent receives a negative reward equal to the weight of the selected node at each step, and the episode ends when all edges are covered.
 
 We will not provide the full implementation of the environment here, but the key components are:
 
-1\. The action and observation space. These are defined as fixed-size spaces, with the observation space being a dictionary containing the node features, edge features, and adjacency matrix. This will be the input to the `MatrixObservationToGraph` features extractor that we defined earlier.
+1\. The action and observation space. These are defined as fixed-size spaces, with the observation space being a dictionary containing the node features, edge features, and adjacency matrix. This is the input to the `MatrixObservationToGraph` features extractor that we defined earlier.
 {% highlight python %}
 
         self.action_space = gym.spaces.Discrete(self.max_nodes)
@@ -909,7 +909,7 @@ We will not provide the full implementation of the environment here, but the key
         )
 
 {% endhighlight %}
-2\. The core logic. The step function will take an action (node index), and add the node to the vertex cover set if it has not already been selected. The covered edges will be updated accordingly, and the reward will be calculated based on the node weight.
+2\. The core logic. The step function takes an action (node index), and adds the node to the vertex cover set if it has not already been selected. The covered edges are updated accordingly, and the reward is calculated based on the node weight.
 {% highlight python %}
 
     def step(self, action):
@@ -931,7 +931,7 @@ We will not provide the full implementation of the environment here, but the key
         return self._get_observation(), reward, done, False, {}
 
 {% endhighlight %}
-3\. The observation function. This function will take the current state of the environment and return the node feature matrix and edge feature matrix as defined, including any padding.
+3\. The observation function. This function takes the current state of the environment and returns the node feature matrix and edge feature matrix as defined, including any padding.
 {% highlight python %}
 
     def _get_observation(self):
@@ -954,7 +954,7 @@ We will not provide the full implementation of the environment here, but the key
             "adjacency_matrix": adjacency_matrix,
         }
 {% endhighlight %}
-4\. The action masks. Here, the environment will indicate which actions (nodes) are valid at each step, i.e., nodes that have not already been selected.
+4\. The action masks. Here, the environment indicates which actions (nodes) are valid at each step, i.e., nodes that have not already been selected.
 {% highlight python %}
 
     def action_masks(self):
@@ -967,7 +967,7 @@ Full code for the environment can be found in the [accompanying GitHub repositor
 ### Training the Policy
 
 With the environment and policy defined, we can now train the GNN-based policy using SB3's PPO implementation.
-We will train on randomly generated graphs of size 5, 10 and 15 nodes.
+We train on randomly generated graphs of size 5, 10 and 15 nodes.
 We validate the policy on graphs of size 15 at regular intervals during training.
 Here we train a 2-layer GAT with embedding dimension 128 on graphs with 100k PPO steps.
 For comparison, we also train GCN and GraphSAGE architectures with the same parameters. 
