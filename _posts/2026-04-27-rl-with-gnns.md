@@ -79,7 +79,9 @@ Deep reinforcement learning (RL) has also been an area of active research, with 
 However, the potential of GNNs in RL remains relatively underexplored.
 Compared to traditional deep learning architectures such as convolutional neural networks (CNNs) and multi-layer perceptrons (MLPs), GNNs offer several advantages that enable novel capabilities in RL settings when used as a policy or value function approximator.
 These include being agnostic to input size, permutation invariance, and the ability to handle variable action spaces.
-These properties have great value in applications such as multi-agent systems, navigation, combinatorial optimisation, and resource allocation.
+Transformer-based architectures have recently proven popular in RL settings, and can be seen as a special case of GNNs with a fully-connected graph structure.
+However, in problems with specific relational structure, using a GNN that takes advantage of this structure can be more efficient and effective than a fully-connected architecture.
+The properties of GNNs have great value in applications such as multi-agent systems, navigation, combinatorial optimisation, and resource allocation.
 
 We hypothesise that the lack of uptake of GNNs in RL is due to unclear design patterns for integrating GNNs into RL frameworks, as well as a lack of implementation support in popular RL libraries.
 Thus, in this blog post, we aim to provide a comprehensive overview of GNNs in RL, focusing on the practical design aspects of using GNNs as policy or value function approximators.
