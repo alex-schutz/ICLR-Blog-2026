@@ -336,9 +336,8 @@ The inspiration for this approach comes from <d-cite key="dulac-arnoldDeepReinfo
 
 #### Examples
 + Darvariu et al. <d-cite key="darvariuSolvingGraphbasedPublic2021"></d-cite> approach a public goods game reformulated as finding a maximal independent set in a graph. At each step, a node is selected from the graph to add to the set until no valid nodes remain. The authors create a proto-action by first summing the node embeddings and then passing it through an MLP. An action distribution is created by taking the Euclidean distance between the proto-action and each node embedding, passing these distances through a softmax layer to obtain probabilities. The policy is trained using imitation learning.
-+ Trivedi et al. <d-cite key="trivediGraphOptLearningOptimization2020"></d-cite> seek to learn generative mechanisms for graph-structured data. Edges are formed by sampling two nodes from a Gaussian policy following $$\mathbf{a}^{(1)}, \mathbf{a}^{(2)} \sim \mathcal{N}(\mathbf{\mu}, \log(\mathbf{\sigma}^2))$$ given the policy $$\pi(s) = [\mathbf{\mu}, \log(\mathbf{\sigma}^2)] = g(Enc(s))$$, where $$g$$ is a 2 layer MLP and $$Enc$$ is a GNN. The policy is trained using Soft Actor-Critic (SAC) combined with Inverse Optimal Control (IOC).
++ Trivedi et al. <d-cite key="trivediGraphOptLearningOptimization2020"></d-cite> seek to learn generative mechanisms for graph-structured data. Edges are formed by sampling two nodes from a Gaussian policy following $$\mathbf{a}^{(1)}, \mathbf{a}^{(2)} \sim N(\mathbf{\mu}, \log(\mathbf{\sigma}^2))$$ given the policy $$\pi(s) = [\mathbf{\mu}, \log(\mathbf{\sigma}^2)] = g(Enc(s))$$, where $$g$$ is a 2 layer MLP and $$Enc$$ is a GNN. The policy is trained using Soft Actor-Critic (SAC) combined with Inverse Optimal Control (IOC).
 
-<!-- TODO: \mathcal{N} redefinition conflict with neighbour notation -->
 
 ### Edges as Actions
 
