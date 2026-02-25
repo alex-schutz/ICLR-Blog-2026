@@ -91,6 +91,7 @@ Furthermore, we include a detailed implementation example using Stable Baselines
 We hope that this post and [associated code](https://github.com/alex-schutz/RL-with-GNNs) will serve as a useful starting point for researchers and practitioners interested in leveraging GNNs in RL settings.
 
 ## Preliminaries
+<!-- TODO: add references to textbooks for more info -->
 
 ### Reinforcement Learning
 RL is a method of solving sequential decision-making problems in the form of Markov Decision Processes (MDP).
@@ -376,14 +377,15 @@ We will demonstrate that action masking is generally a more effective approach w
 #### Experiment
 
 We will run a simple experiment to compare the performance of action masking and invalid action penalties in a GNN-based RL environment.
-We will use a weighted minimum vertex cover (MVC) problem, where the agent must select nodes to cover all edges in the graph while minimising the total weight of the selected nodes.
+We use the weighted minimum vertex cover (MVC) problem as a test environment, where the agent must select nodes to cover all edges in the graph while minimising the total weight of the selected nodes.
+This fairly simple problem has been widely studied in the literature, and we use it here as an illustrative example, though the strength of the approach lies in its generality and applicability to less studied combinatorial optimisation problems.
 The full environment setup is described in the [Implementation Example](#implementation-example) section below.
 
 In this setting, invalid actions correspond to selecting nodes that have already been selected.
 In a given episode, the maximum number of steps that can be taken by only selecting valid actions is equal to the number of nodes in the graph.
 However, if invalid actions are allowed (and penalised), the agent may select the same node multiple times, leading to indefinite episode lengths.
 
-We will compare two agents: one using action masking to prevent invalid actions, and one using a fixed penalty of -1 for selecting an invalid action.
+We compare two agents: one using action masking to prevent invalid actions, and one using a fixed penalty of -1 for selecting an invalid action.
 The reward for selecting a valid node is equal to the negative weight of the node.
 For the agent using penalties, we set the maximum episode length to be the number of nodes in the graph, to prevent indefinite episodes.
 Both agents are trained using PPO with the same GNN architecture (2 GraphSAGE layers) and hyperparameters.
