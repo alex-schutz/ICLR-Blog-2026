@@ -119,14 +119,9 @@ The value / policy network then takes this latent representation as input and ou
 Typical deep learning architectures use CNNs for processing image-based observations and MLPs for vector-based observations.
 Policy and value networks are often implemented as MLPs, which take the encoded observation as input and output action values or action probabilities.
 Notably, using MLPs requires a fixed input dimension $$d$$, according to the size of the observation space or the output of the encoder, and a fixed output dimension according to the size of the action space $$|A|$$. 
+For further details on RL and Deep RL, we recommend the textbook by Sutton and Barto <d-cite key="suttonReinforcementLearningAn2018"></d-cite>.
 
 GNNs are a powerful alternative architecture that can provide a host of advantages for a variety of practical RL problems. Let us review GNNs next.
-
-<!-- Let's have a look at some popular deep RL benchmark problems.
-- **Lunar Lander**: 
-  - Observation space: 8-dimensional vector -- lander coordinates, velocities, and contacts.
-  - Action space: $$\{0, 1, 2, 3\}$$ -- do nothing, fire left engine, fire main engine, fire right engine. -->
-
 
 
 ### Graph Neural Networks
@@ -252,7 +247,6 @@ This means that it is possible to train a GNN-based policy on small graphs and d
 
   
 ## Designing Environments for Graph Problems
-<!-- todo: highlight advantage of GNNs in each example -->
 
 While using GNNs can offer several advantages compared to standard learning architectures in RL settings, designing the environment that the agent interacts with (e.g., action space and transition function of the MDP) also has an important role. 
 In order to use GNNs in RL, we need to represent the environment as a graph.
