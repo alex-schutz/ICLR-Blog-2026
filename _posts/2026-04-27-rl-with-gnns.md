@@ -1045,6 +1045,6 @@ In addition, standardised benchmarks and evaluation protocols for GNN-based RL m
 
 GNNs offer a powerful approach for function approximation in RL settings, enabling capabilities such as permutation invariance, handling variable action spaces, and applicability with dynamic input sizes.
 By representing the environment as a graph, we can leverage the strengths of GNNs to tackle practical RL problems that are difficult to solve with traditional deep learning architectures.
-While there are still challenges and open questions to be addressed, the integration of GNNs into RL holds great promise for advancing the field and unlocking new applications in combinatorial optimization, multi-agent systems, and dynamic resource allocation.
+While there are still challenges and open questions to be addressed, the integration of GNNs into RL holds promise for advancing the field and unlocking new applications in combinatorial optimization, multi-agent systems, and dynamic resource allocation.
 Looking forward, we hope this blogpost will encourage more research exploring the application of GNNs in RL, as well as improved support for graph-based RL in popular libraries and frameworks.
 
