@@ -91,7 +91,6 @@ Furthermore, we include a detailed implementation example using Stable Baselines
 We hope that this post and [associated code](https://github.com/alex-schutz/RL-with-GNNs) will serve as a useful starting point for researchers and practitioners interested in leveraging GNNs in RL settings.
 
 ## Preliminaries
-<!-- TODO: add references to textbooks for more info -->
 
 ### Reinforcement Learning
 RL is a method of solving sequential decision-making problems in the form of Markov Decision Processes (MDP).
@@ -139,6 +138,7 @@ _Shallow_ graph embedding methods are manually-designed approaches using local n
 However, these methods often fail to capture complex relationships in the graph.
 _Deep_ graph embedding methods aim to learn the representation by training end-to-end with task-specific supervision signals.
 Graph Neural Networks (GNNs) are a class of deep learning models designed to operate on graph-structured data.
+We will provide a brief overview of GNNs here, but refer the interested reader to the textbook by Hamilton <d-cite key="hamiltonGraphRepresentationLearning2020"></d-cite> for a comprehensive introduction.
 
 {% include figure.liquid path="assets/img/2026-04-27-rl-with-gnns/graph_embedding2.svg" class="img-fluid" alt="On the left is an input graph with 8 nodes. On the right is a plot demonstrating the 2-D embedding of the nodes in vector space." caption="A GNN can learn an embedding of nodes in vector space." %}
 
