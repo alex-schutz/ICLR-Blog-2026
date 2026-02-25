@@ -81,7 +81,7 @@ Compared to traditional deep learning architectures such as convolutional neural
 These include being agnostic to input size, permutation invariance, and the ability to handle variable action spaces.
 Transformer-based architectures have recently proven popular in RL settings, and can be seen as a special case of GNNs with a fully-connected graph structure.
 However, in problems with specific relational structure, using a GNN that takes advantage of this structure can be more efficient and effective than a fully-connected architecture.
-The properties of GNNs have great value in applications such as multi-agent systems, navigation, combinatorial optimisation, and resource allocation.
+The properties of GNNs have great value in applications such as multi-agent systems, navigation, combinatorial optimization, and resource allocation.
 
 We hypothesise that the lack of uptake of GNNs in RL is due to unclear design patterns for integrating GNNs into RL frameworks, as well as a lack of implementation support in popular RL libraries.
 Thus, in this blog post, we aim to provide a comprehensive overview of GNNs in RL, focusing on the practical design aspects of using GNNs as policy or value function approximators.
@@ -105,7 +105,7 @@ The agent's objective is to learn a policy that maximises the expected cumulativ
 RL methods fall into two main categories: _value-based_ methods and _policy-based_ methods.
 Value-based methods, such as Q-learning and Deep Q-Networks (DQN), focus on estimating the Q-function $$Q : S \times A \rightarrow \mathbb{R}$$, representing the expected return for taking a particular action in a given state.
 Given the Q-function, a policy can be derived by selecting the action that maximises the value.
-Policy-based methods, such as Policy Gradient and Proximal Policy Optimization (PPO), directly parameterise the policy $$\pi_{\theta}(a | s)$$ and optimise the parameters $$\theta$$ to maximise the expected return. An RL policy can also be trained from expert demonstrations directly using _imitation learning_ algorithms such as Behavioral Cloning (BC).
+Policy-based methods, such as Policy Gradient and Proximal Policy Optimization (PPO), directly parameterise the policy $$\pi_{\theta}(a | s)$$ and optimize the parameters $$\theta$$ to maximise the expected return. An RL policy can also be trained from expert demonstrations directly using _imitation learning_ algorithms such as Behavioral Cloning (BC).
 With this approach, the agent learns to mimic the behaviour of an expert by aligning its action predictions with those from state-action pairs collected from expert trajectories.
 
 Deep neural networks including GNNs can be used as function approximators of $$Q$$ and $$\pi$$ for scaling to environments with large state and action spaces, which is loosely referred to as _Deep RL_. A typical Deep RL architecture is shown below.
@@ -312,7 +312,7 @@ From these scores, an action distribution can be created, or the highest scoring
 ### Nodes as Actions: Score-Based
 
 More generally, we can consider the entire set of nodes in the graph as possible actions.
-This is particularly useful in environments where the agent can select any node in the graph as an action, such as in combinatorial optimisation problems.
+This is particularly useful in environments where the agent can select any node in the graph as an action, such as in combinatorial optimization problems.
 Using this action space, an agent can be trained on graphs of small sizes, and learn a policy that can be evaluated on much larger graphs at test time.
 
 Similarly to the neighbours-as-actions approach, the node embeddings produced by the GNN can be scored to produce action values or action probabilities.
@@ -321,7 +321,7 @@ Similarly to the neighbours-as-actions approach, the node embeddings produced by
 
 
 #### Examples
-+ Khalil et al. <d-cite key="Khalil2017LearningCO"></d-cite> approach combinatorial optimisation problems such as the travelling salesman problem (TSP) and minimum vertex cover (MVC) using Q-learning. At each step, a node is selected from the graph to be added to the solution set. The action-value estimate for each node $$v$$ in graph state $$G$$ is given by $$Q(G, v) = f([\mathbf{z}_G \| \mathbf{z}_v])$$, where $$\mathbf{z}_G$$ is the graph-level embedding obtained via pooling and $$\mathbf{z}_v$$ is the GNN embedding of node $$v$$. Here, $$f$$ is a 2-layer MLP.
++ Khalil et al. <d-cite key="Khalil2017LearningCO"></d-cite> approach combinatorial optimization problems such as the travelling salesman problem (TSP) and minimum vertex cover (MVC) using Q-learning. At each step, a node is selected from the graph to be added to the solution set. The action-value estimate for each node $$v$$ in graph state $$G$$ is given by $$Q(G, v) = f([\mathbf{z}_G \| \mathbf{z}_v])$$, where $$\mathbf{z}_G$$ is the graph-level embedding obtained via pooling and $$\mathbf{z}_v$$ is the GNN embedding of node $$v$$. Here, $$f$$ is a 2-layer MLP.
 + Antonietti et al. <d-cite key="antonietti2025magnet"></d-cite> consider mesh agglomeration as a graph partitioning problem. At each step, a point is chosen to be switched from its current partition into the other. The model is implemented using four GraphSAGE layers, followed by two linear layers. The critic then uses attentional aggregation and two further linear layers to produce a value estimate, and the model is trained using A2C. Here, the authors use action masking to prevent previously selected nodes from being selected again.
 + Infantes et al. <d-cite key="infantes2024earth"></d-cite> address satellite observation scheduling using a GNN-based policy trained with PPO. In this case, the authors obtain the action logits from a concatenation of node embeddings from each layer of the GNN, passed through a linear layer to reduce them to dimension 1.
 
@@ -378,7 +378,7 @@ We will demonstrate that action masking is generally a more effective approach w
 
 We will run a simple experiment to compare the performance of action masking and invalid action penalties in a GNN-based RL environment.
 We use the weighted minimum vertex cover (MVC) problem as a test environment, where the agent must select nodes to cover all edges in the graph while minimising the total weight of the selected nodes.
-This fairly simple problem has been widely studied in the literature, and we use it here as an illustrative example, though the strength of the approach lies in its generality and applicability to less studied combinatorial optimisation problems.
+This fairly simple problem has been widely studied in the literature, and we use it here as an illustrative example, though the strength of the approach lies in its generality and applicability to less studied combinatorial optimization problems.
 The full environment setup is described in the [Implementation Example](#implementation-example) section below.
 
 In this setting, invalid actions correspond to selecting nodes that have already been selected.
@@ -404,7 +404,7 @@ Clearly, this is an important design decision which can have a significant impac
 ## Implementation Example
 
 We illustrate how to implement a simple GNN-based policy network using PyTorch Geometric <d-cite key="fey2019fast"></d-cite>.
-The training is performed using Proximal Policy Optimisation (PPO) <d-cite key="schulman2017proximalpolicyoptimizationalgorithms"></d-cite> on a weighted minimum vertex cover (MVC) problem.
+The training is performed using Proximal Policy Optimization (PPO) <d-cite key="schulman2017proximalpolicyoptimizationalgorithms"></d-cite> on a weighted minimum vertex cover (MVC) problem.
 We use Stable Baselines3 (SB3) <d-cite key="raffin2021stable"></d-cite> for the RL training loop.
 
 The MVC problem is defined on an undirected graph $$G = (V, E)$$ with node weights $$w: V \rightarrow \mathbb{R}^+$$.
@@ -1045,6 +1045,6 @@ In addition, standardised benchmarks and evaluation protocols for GNN-based RL m
 
 GNNs offer a powerful approach for function approximation in RL settings, enabling capabilities such as permutation invariance, handling variable action spaces, and applicability with dynamic input sizes.
 By representing the environment as a graph, we can leverage the strengths of GNNs to tackle practical RL problems that are difficult to solve with traditional deep learning architectures.
-While there are still challenges and open questions to be addressed, the integration of GNNs into RL holds great promise for advancing the field and unlocking new applications in combinatorial optimisation, multi-agent systems, and dynamic resource allocation.
+While there are still challenges and open questions to be addressed, the integration of GNNs into RL holds great promise for advancing the field and unlocking new applications in combinatorial optimization, multi-agent systems, and dynamic resource allocation.
 Looking forward, we hope this blogpost will encourage more research exploring the application of GNNs in RL, as well as improved support for graph-based RL in popular libraries and frameworks.
 
