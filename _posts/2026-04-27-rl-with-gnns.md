@@ -81,9 +81,9 @@ Compared to traditional deep learning architectures such as convolutional neural
 These include being agnostic to input size, permutation invariance, and the ability to handle variable action spaces.
 Transformer-based architectures have recently proven popular in RL settings, and can be seen as a special case of GNNs with a fully-connected graph structure.
 However, in problems with specific relational structure, using a GNN that takes advantage of this structure can be more efficient and effective than a fully-connected architecture.
-The properties of GNNs have great value in applications such as multi-agent systems, navigation, combinatorial optimization, and resource allocation.
+The properties of GNNs have great value in applications such as combinatorial optimization, multi-agent systems, and resource allocation.
 
-We hypothesise that the lack of uptake of GNNs in RL is due to unclear design patterns for integrating GNNs into RL frameworks, as well as a lack of implementation support in popular RL libraries.
+We hypothesise that the lack of uptake of GNNs in RL is partly due to unclear design patterns for integrating GNNs into RL frameworks, as well as a lack of implementation support in popular RL libraries.
 Thus, in this blog post, we aim to provide a comprehensive overview of GNNs in RL, focusing on the practical design aspects of using GNNs as policy or value function approximators.
 We discuss common approaches to representing environments as graphs, defining action spaces, and handling invalid actions.
 Furthermore, we include a detailed implementation example using Stable Baselines 3 (SB3) <d-cite key="raffin2021stable"></d-cite> and PyTorch Geometric <d-cite key="fey2019fast"></d-cite>, two of the most widely used RL and GNN libraries respectively.
@@ -121,7 +121,6 @@ Notably, using MLPs requires a fixed input dimension $$d$$, according to the siz
 For further details on RL and Deep RL, we recommend the textbook by Sutton and Barto <d-cite key="suttonReinforcementLearningAn2018"></d-cite>.
 
 GNNs are a powerful alternative architecture that can provide a host of advantages for a variety of practical RL problems. Let us review GNNs next.
-
 
 ### Graph Neural Networks
 
@@ -179,10 +178,10 @@ In order to preserve permutation invariance, the readout function must also be p
 
 Many popular GNN architectures can be expressed using this message-passing framework, including Graph Convolutional Networks (GCNs) <d-cite key="kipfSemiSupervisedClassificationGraph2017"></d-cite>, Graph Attention Networks (GATs) <d-cite key="velickovic2018graph"></d-cite>, and GraphSAGE <d-cite key="hamiltonInductiveRepresentationLearning2017"></d-cite>.
 
+## Limitations of Using Traditional Architectures in Deep Reinforcement Learning
 
-## Limitations of Traditional Architectures for Deep Reinforcement Learning
-
-Even though MLPs and CNNs are widely used in Deep RL, there are a number of limitations inherent in their representational power, which we discuss below.
+Traditional architectures such as MLP and CNNs are frequently used for function approximation in Deep RL. Typically, this relies on fixed-size input encodings and policy or value heads. 
+There are a number of significant limitations inherent in this approach, which we discuss below.
 
 ### Permutation Sensitivity
 Graphs nominally enjoy the property of permutation invariance: regardless of the ordering of the nodes, the properties are the same, as only the *relationships* between the nodes are important.
@@ -194,7 +193,7 @@ If we use the matrix representation of the graph as input to a neural network, w
 The two adjacency matrices above are created from the same graph. Fed to an MLP, we obtain two very different outputs.
 This means that in order to train our network to, say, classify graphs based on their structure, we would have to add permutations of the training data in order to ensure that it learns to correctly classify what is fundamentally the same graph.
 
-Let's use the game of tic-tac-toe as an example. 
+Consider the game of tic-tac-toe as an example. 
 This game is represented by a $$3\times 3$$ grid, in which spaces can be blank, or contain an $$\texttt{X}$$ or $$\texttt{O}$$.
 A simple representation of this state would be a $$3\times 3$$ matrix with each entry corresponding to the contents of the space on the board.
 This kind of state representation is easily handled by an appropriately sized CNN layer or MLP after vectorisation.
@@ -267,7 +266,7 @@ In the following sections, we discuss several common approaches to defining acti
 
 ### Fixed Action Spaces
 
-The most straightforward way to use a GNN in RL is to use it as a feature extractor for environments with fixed action spaces.
+The most straightforward way to leverage a GNN in RL is to use it as a feature extractor for environments with fixed action spaces.
 In this case, the GNN processes the graph-structured observation from the environment and produces a graph or node-level embedding vector.
 This vector can then passed to an MLP to produce action values or probabilities.
 
@@ -369,10 +368,12 @@ We will demonstrate that action masking is generally a more effective approach w
 
 #### Experiment
 
-We will run a simple experiment to compare the performance of action masking and invalid action penalties in a GNN-based RL environment.
+We run a simple experiment to compare the performance of action masking and invalid action penalties in a GNN-based RL environment.
 We use the weighted minimum vertex cover (MVC) problem as a test environment, where the agent must select nodes to cover all edges in the graph while minimising the total weight of the selected nodes.
-This fairly simple problem has been widely studied in the literature, and we use it here as an illustrative example, though the strength of the approach lies in its generality and applicability to less studied combinatorial optimization problems.
-The full environment setup is described in the [Implementation Example](#implementation-example) section below.
+
+We remark that this problem has been widely studied in the combinatorial optimization literature and powerful solvers have been developed. 
+Thus, we use the MVC as an illustrative example due to its relative simplicity, but do not recommend a learning-based approach for solving it in practice. 
+The strength of the RL+GNN approach lies in its generality and applicability to less-studied combinatorial optimization problems <d-cite key='darvariu2024graph'></d-cite>. The full environment setup is described in the [Implementation Example](#implementation-example) section below.
 
 In this setting, invalid actions correspond to selecting nodes that have already been selected.
 In a given episode, the maximum number of steps that can be taken by only selecting valid actions is equal to the number of nodes in the graph.
@@ -418,7 +419,7 @@ While the padding introduces some overhead, the padded graphs in matrix form wil
 The `max_nodes` parameter should be chosen based on the expected size of the graphs in the environment.
 However, this parameter does not inherently impose any architectural constraints on the GNN, which means it can be **changed at test time** to allow for testing on larger graphs than seen during training.
 
-### The Actor Critic Architecture
+### The Actor-Critic Architecture
 
 We base our implementation on the actor-critic architecture provided by SB3.
 As a base class, we use `MaskableActorCriticPolicy` from the `sb3_contrib` package, which allows us to apply action masks to the action distribution.
@@ -872,7 +873,7 @@ class MaskableGraphActorCriticPolicy(MaskableActorCriticPolicy):
 With the policy defined, we now create a simple Gym environment for the weighted minimum vertex cover problem.
 Here, we use a node feature vector consisting of the node weight and a binary indicator of whether the node has been selected.
 We also define an edge feature vector consisting of a binary indicator of whether the edge is covered in the current solution.
-We use a simple reward structure, where the agent receives a negative reward equal to the weight of the selected node at each step, and the episode ends when all edges are covered.
+We use a simple reward structure in which the agent receives a negative reward equal to the weight of the selected node at each step, and the episode ends when all edges are covered.
 
 We will not provide the full implementation of the environment here, but the key components are:
 
@@ -1019,13 +1020,12 @@ Using GNNs as policy or value function approximators in RL unlocks many new capa
 
 As discussed previously, defining the action space is a key challenge when using GNNs in RL.
 Most existing works use either a fixed action space or model actions as some function of nodes or edges.
-Popular GNN architectures are primarily designed to produce node-level embeddings, and edge-based actions are mostly unexplored in RL settings.
-At this stage, modelling more complex action spaces, such as hybrids of fixed and graph-based actions, remains an open question.
+At this stage, how to model more complex action spaces such as hybrids of graph-based and continuous actions (e.g., choosing an edge *and* allocating it a real-valued capacity) remains an open question.
 
 The limitations of GNN architectures themselves can also limit their effectiveness in RL settings.
 At present, many GNNs operate under the assumption of homophily: that connected nodes are more likely to share similar features or labels.
 GNNs have also been designed for heterogeneous graphs (e.g., <d-cite key="wang2019heterogeneous"></d-cite>), but these require a strict bipartite structure, limiting their applicability.
-At present, even if an environment can be modelled as a graph, complex structures or interactions (such as distinct node types, or higher-order relationships) may create an environment that is not well-suited to existing GNN architectures.
+At present, even if an environment can be modelled as a graph, complex structures or interactions (such as distinct node types or higher-order relationships) may create an environment that is not well-suited to existing GNN architectures.
 Furthermore, many GNNs can be prone to over-smoothing, where node embeddings become indistinguishable after multiple message-passing layers <d-cite key="rusch2023survey"></d-cite>.
 This makes long-range dependencies difficult to capture, and can limit the effectiveness of GNNs in environments with large or dense graphs.
 
@@ -1038,6 +1038,6 @@ In addition, standardised benchmarks and evaluation protocols for GNN-based RL m
 
 GNNs offer a powerful approach for function approximation in RL settings, enabling capabilities such as permutation invariance, handling variable action spaces, and applicability with dynamic input sizes.
 By representing the environment as a graph, we can leverage the strengths of GNNs to tackle practical RL problems that are difficult to solve with traditional deep learning architectures.
-While there are still challenges and open questions to be addressed, the integration of GNNs into RL holds promise for advancing the field and unlocking new applications in combinatorial optimization, multi-agent systems, and dynamic resource allocation.
-Looking forward, we hope this blogpost will encourage more research exploring the application of GNNs in RL, as well as improved support for graph-based RL in popular libraries and frameworks.
+While there are important challenges and open questions to be addressed, the works reviewed in this blog post demonstrate that integrating GNNs into RL holds promise for advancing the field and unlocking new applications in combinatorial optimization, multi-agent systems, and resource allocation.
+Looking forward, we hope this blog post will encourage more research exploring the application of GNNs in RL, as well as improved support for graph-based RL in popular libraries and frameworks.
 
